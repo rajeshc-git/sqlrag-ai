@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Blueshift</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      background-size: cover;
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+    
+    .glass {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+    
+    .logo-container {
+      background: #FFFFFF;
+      border-radius: 1rem;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .logo-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #FFFFFF;
+      z-index: 0;
+    }
+    
+    .logo-content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .btn-glow {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-glow:hover {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+      transform: translateY(-1px);
+    }
+    
+    .btn-glow::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+      transform: rotate(30deg);
+      animation: pulseGlow 3s infinite;
+    }
+    
+    @keyframes pulseGlow {
+      0% { transform: translateX(-100%) rotate(30deg); }
+      100% { transform: translateX(100%) rotate(30deg); }
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .fade-in-up {
+      opacity: 0;
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    
+    .input-field {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .input-field:focus {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+    
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .form-group {
+      position: relative;
+    }
+    
+    .form-group input {
+      padding-left: 2.75rem;
+    }
+    
+    .form-group input:focus + .input-icon {
+      color: rgba(59, 130, 246, 0.7);
+    }
+    
+    .pulse-focus {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+    
+    /* Background patterns */
+    .bg-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .grid-cols-5 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center px-6">
+  <!-- Background pattern -->
+  <div class="bg-pattern">
+    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <defs>
+        <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1" fill="rgba(255,255,255,0.2)" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#dots)" />
+    </svg>
+  </div>
+
+  <!-- Main Container -->
+  <div class="grid grid-cols-1 md:grid-cols-5 glass rounded-3xl overflow-hidden max-w-6xl w-full shadow-2xl z-10 my-12">
+    <!-- Left branding section (2/5 width on desktop) -->
+    <div class="md:col-span-2 flex flex-col items-center justify-center p-10 text-white relative" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(37, 99, 235, 0.8));">
+      <!-- Healthcare themed background pattern -->
+      <div class="absolute inset-0 z-0 opacity-10">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      </div>
+      
+      <!-- Logo Container -->
+      <div class="logo-container p-8 rounded-xl mb-8 w-full max-w-xs fade-in-up" style="animation-delay: 0.3s;">
+        <div class="logo-content flex flex-col items-center">
+          <img src="logo.png" alt="Blueshift - Patient Outreach Through AI" class="w-full max-w-[200px]">
+        </div>
+      </div>
+      
+      <!-- Tagline -->
+      <h2 class="text-xl font-light opacity-0 fade-in-up z-10" style="animation-delay: 0.8s; animation-fill-mode: forwards;">
+        Empowering Patient Outreach
+      </h2>
+      <p class="text-2xl font-semibold mt-2 opacity-0 fade-in-up z-10" style="animation-delay: 1s; animation-fill-mode: forwards;">
+        through <span class="text-blue-200">Artificial Intelligence</span>
+      </p>
+      
+      <!-- Feature points -->
+      <div class="mt-10 space-y-4 text-sm opacity-0 fade-in-up z-10" style="animation-delay: 1.2s; animation-fill-mode: forwards;">
+        <div class="flex items-center">
+          <div class="rounded-full bg-blue-500/20 p-1 mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-200" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <p>Personalized patient communication</p>
+        </div>
+        <div class="flex items-center">
+          <div class="rounded-full bg-blue-500/20 p-1 mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-200" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <p>Advanced healthcare insights</p>
+        </div>
+        <div class="flex items-center">
+          <div class="rounded-full bg-blue-500/20 p-1 mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-200" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <p>Secure, HIPAA-compliant platform</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right login form (3/5 width on desktop) -->
+    <div class="md:col-span-3 p-8 sm:p-12 relative">
+      <!-- Small decorative element -->
+      <div class="absolute top-0 right-0 w-32 h-32 opacity-10">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" stroke-width="1" fill="none" />
+          <circle cx="50" cy="50" r="30" stroke="rgba(255,255,255,0.2)" stroke-width="1" fill="none" />
+          <circle cx="50" cy="50" r="20" stroke="rgba(255,255,255,0.2)" stroke-width="1" fill="none" />
+        </svg>
+      </div>
+
+      <div class="max-w-md mx-auto">
+        <h2 class="text-3xl font-semibold text-white mb-2 fade-in-up" style="animation-delay: 0.5s;">Welcome Back</h2>
+        <p class="text-blue-300 mb-8 opacity-80 fade-in-up" style="animation-delay: 0.6s;">Sign in to access your Blueshift dashboard</p>
+        
+        <form id="loginForm" class="space-y-5 fade-in-up" style="animation-delay: 0.7s;">
+          <!-- Username field with icon -->
+          <div class="form-group">
+            <input type="text" id="username" placeholder="Username" class="w-full px-4 py-3 pl-10 input-field text-white rounded-lg focus:outline-none transition-all duration-300" required>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 input-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          
+          <!-- Password field with icon -->
+          <div class="form-group">
+            <input type="password" id="password" placeholder="Password" class="w-full px-4 py-3 pl-10 input-field text-white rounded-lg focus:outline-none transition-all duration-300" required>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 input-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          
+          <!-- Sign In Button -->
+          <button type="submit" id="loginBtn" class="btn-glow w-full text-white py-3 rounded-lg flex items-center justify-center font-medium text-lg transition-all duration-300 mt-8">
+            <span>Sign In</span>
+            <svg id="spinner" class="hidden w-5 h-5 ml-2 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </button>
+        </form>
+        
+        <div class="mt-6 text-center fade-in-up" style="animation-delay: 0.9s;">
+          <a href="forgot_password.html" class="text-sm text-blue-300 hover:text-blue-200 transition-colors duration-300">Forgot your password?</a>
+        </div>
+        
+        <!-- Error message -->
+        <div id="error" class="mt-6 rounded-lg p-3 bg-red-900/30 border border-red-800/50 text-red-300 text-center hidden fade-in-up">
+          <p class="flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span id="errorText"></span>
+          </p>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="mt-12 text-center text-xs text-gray-400 opacity-60 fade-in-up" style="animation-delay: 1s;">
+        <p>© 2025 ABI Health. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Login Logic -->
+  <script>
+    const API_URL = 'http://192.168.10.90:8002';
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const spinner = document.getElementById('spinner');
+    const errorMsg = document.getElementById('error');
+    const errorText = document.getElementById('errorText');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (loginBtn.disabled) return;
+
+      const username = document.getElementById('username').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        errorText.textContent = 'Please enter both username and password';
+        errorMsg.classList.remove('hidden');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      spinner.classList.remove('hidden');
+      errorMsg.classList.add('hidden');
+
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'Login failed');
+
+        sessionStorage.setItem('username', data.username);
+		localStorage.setItem('crm_username', data.username);
+        window.location.href = data.role === 'admin' ? 'admin_dashboard.html' : 'dashboard.html';
+
+      } catch (error) {
+        errorText.textContent = error.message || 'An error occurred';
+        errorMsg.classList.remove('hidden');
+      } finally {
+        loginBtn.disabled = false;
+        spinner.classList.add('hidden');
+      }
+    });
+    
+    // Add subtle focus animation
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('focus', () => {
+        input.classList.add('pulse-focus');
+      });
+      input.addEventListener('blur', () => {
+        input.classList.remove('pulse-focus');
+      });
+    });
+  </script>
+</body>
+</html>

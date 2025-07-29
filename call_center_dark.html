@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Search</title>
+  <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0e1525;
+      color: #f5f9fc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .search-container {
+      background-color: #1c2333;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .filters-container {
+      background-color: #1c2333;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .results-container {
+      background-color: #1c2333;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .status-connecting {
+      background-color: #f0ad4e;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .status-connected {
+      background-color: #5cb85c;
+    }
+    
+    .status-error {
+      background-color: #d9534f;
+    }
+    
+    @keyframes pulse {
+      0% {
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.6;
+      }
+    }
+    
+    .search-input {
+      border-radius: 6px;
+      border: 1px solid #3a4464;
+      background-color: #0e1525;
+      color: #f5f9fc;
+      padding: 0.75rem 1rem;
+      width: 100%;
+      font-size: 1rem;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+    
+    .search-btn {
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .search-btn:hover {
+      background-color: #0069d9;
+    }
+    
+    .table-container {
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: 1.5rem;
+    }
+    
+    .patients-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .patients-table th {
+      background-color: #242b3e;
+      color: #cbd5e0;
+      font-weight: 500;
+      text-align: left;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .patients-table td {
+      padding: 1rem;
+      border-bottom: 1px solid #2d3748;
+    }
+    
+    .patients-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .patients-table tr:hover {
+      background-color: #242b3e;
+    }
+    
+    .table-text {
+      font-size: 0.95rem;
+    }
+    
+    .table-text-primary {
+      color: #f5f9fc;
+      font-weight: 500;
+    }
+    
+    .table-text-secondary {
+      color: #a0aec0;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.35em 0.65em;
+      font-size: 0.75em;
+      font-weight: 500;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: baseline;
+      border-radius: 0.375rem;
+    }
+    
+    .badge-blue {
+      background-color: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+    }
+    
+    .badge-pink {
+      background-color: rgba(236, 72, 153, 0.1);
+      color: #ec4899;
+    }
+    
+    .select-btn {
+      background-color: transparent;
+      border: 1px solid #4299e1;
+      color: #4299e1;
+      padding: 0.35rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    
+    .select-btn:hover {
+      background-color: #4299e1;
+      color: white;
+    }
+    
+    .td-right {
+      text-align: right;
+    }
+    
+    .loading-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-left-color: #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    .error-state {
+      display: none;
+      background-color: #392b36;
+      border-left: 4px solid #e53e3e;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 0 6px 6px 0;
+    }
+    
+    .patient-results {
+      display: none;
+    }
+    
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .patient-count {
+      font-size: 0.95rem;
+      color: #a0aec0;
+    }
+    
+    .empty-state {
+      display: none;
+      padding: 2rem;
+      text-align: center;
+      color: #a0aec0;
+    }
+    
+    .clear-btn {
+      background-color: transparent;
+      border: 1px solid #a0aec0;
+      color: #a0aec0;
+      padding: 0.35rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    
+    .clear-btn:hover {
+      background-color: rgba(160, 174, 192, 0.1);
+    }
+    
+    .retry-btn {
+      background-color: transparent;
+      border: 1px solid #e53e3e;
+      color: #e53e3e;
+      padding: 0.35rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      transition: all 0.2s;
+    }
+    
+    .retry-btn:hover {
+      background-color: #e53e3e;
+      color: white;
+    }
+  </style>
+  <style>
+  .theme-toggle {
+    display: flex;
+    gap: 10px;
+    margin-left: auto; /* Pushes toggler to the right */
+}
+
+.theme-toggle a {
+    text-decoration: none;
+    font-size: 20px;
+    color: #fff;
+    transition: color 0.3s ease;
+}
+
+.theme-toggle a:hover {
+    color: #007bff;
+}
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <h1 class="mb-4">Patient Search</h1>
+    <div class="status-header">
+    <div id="statusDot" class="status-dot status-connecting"></div>
+    <span id="statusText">Connecting to server...</span>
+    <div class="theme-toggle">
+        <a href="call_center_dark.html" id="darkModeToggle" title="Dark Mode">
+            <i class="fas fa-moon"></i>
+        </a>
+        <a href="call_center.html" id="lightModeToggle" title="Light Mode">
+            <i class="fas fa-sun"></i>
+        </a>
+    </div>
+</div>
+    <div class="search-container">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <input type="text"  id="searchName"  class="search-input" placeholder="Enter patient mobile number">
+        </div>
+        <div class="col-md-2">
+          <button id="searchButton" class="search-btn w-100">
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="errorState" class="error-state">
+      <div class="fw-semibold text-danger mb-1">Error</div>
+      <div id="errorMessage">Failed to retrieve patient data.</div>
+      <button id="retryButton" class="retry-btn">Retry</button>
+    </div>
+    <div id="loadingState" class="loading-state">
+      <div class="spinner"></div>
+      <div>Searching for patients...</div>
+    </div>
+    <div id="emptyState" class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+      </svg>
+      <h3 class="mt-3">No patients found</h3>
+      <p>Try a different mobile number or clear the filters.</p>
+    </div>
+    <div id="patientResults" class="patient-results">
+      <div class="filters-container">
+        <div class="row g-3 align-items-center">
+          <div class="col-md-6">
+            <input 
+              type="text" 
+              id="filterInput" 
+              class="search-input" 
+              placeholder="Filter results by name"
+              autocomplete="off"
+            >
+          </div>
+          <div class="col-md-4">
+            <select id="genderFilter" class="search-input">
+              <option value="all">All Genders</option>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+              <option value="O">Other</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button id="clearSearchButton" title="Clear Filters" class="clear-btn w-100" style="padding: 0.75rem 1rem;">
+              <i class="fa-solid fa-filter-circle-xmark"></i> 
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="results-container">
+        <div class="result-header">
+          <h2 class="h5 m-0">Patient Results</h2>
+          <div id="patientCount" class="patient-count">0 patients found</div>
+        </div>
+        <div class="table-container">
+          <table class="patients-table">
+            <thead>
+              <tr>
+                <th>Patient ID</th>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>DOB</th>
+                <th>Age</th>
+                <th>Patient Number</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="patientTableBody">
+              <!-- Patient rows will be added here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM Elements
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      const searchNameInput = document.getElementById('searchName');
+      const searchButton = document.getElementById('searchButton');
+      const filterInput = document.getElementById('filterInput');
+      const genderFilter = document.getElementById('genderFilter');
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      const retryButton = document.getElementById('retryButton');
+      const patientResults = document.getElementById('patientResults');
+      const patientTableBody = document.getElementById('patientTableBody');
+      const patientCount = document.getElementById('patientCount');
+      const emptyState = document.getElementById('emptyState');
+      const clearSearchButton = document.getElementById('clearSearchButton');
+
+      // State
+      let allPatients = [];
+      let filteredPatients = [];
+      let connectionStatus = 'connecting'; // 'connecting', 'connected', 'error'
+
+      // Initialize
+      initializeApp();
+
+      function initializeApp() {
+        updateConnectionStatus('connected');
+        
+        // Event Listeners
+        searchButton.addEventListener('click', handleSearch);
+        filterInput.addEventListener('input', handleFilter);
+        genderFilter.addEventListener('change', handleFilter);
+        retryButton.addEventListener('click', handleRetry);
+        clearSearchButton.addEventListener('click', handleClearSearch);
+        
+        // Allow enter key to submit search
+        searchNameInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            handleSearch();
+          }
+        });
+      }
+
+      function updateConnectionStatus(status) {
+        connectionStatus = status;
+        statusDot.className = 'status-dot';
+        
+        switch(status) {
+          case 'connecting':
+            statusDot.classList.add('status-connecting');
+            statusText.textContent = 'Connecting to server...';
+            break;
+          case 'connected':
+            statusDot.classList.add('status-connected');
+            statusText.textContent = 'Connected';
+            break;
+          case 'error':
+            statusDot.classList.add('status-error');
+            statusText.textContent = 'Connection error';
+            break;
+        }
+      }
+
+      async function handleSearch() {
+        const searchValue = searchNameInput.value.trim();
+        
+        if (!searchValue) {
+          showError('Please enter a mobile number to search.');
+          return;
+        }
+        
+        showLoading();
+        
+        try {
+          const data = await fetchPatientData(searchValue);
+          
+          if (data && data.PatientVisits && data.PatientVisits.length > 0) {
+            allPatients = data.PatientVisits;
+            filteredPatients = [...allPatients];
+            
+            updatePatientTable();
+            showPatientResults();
+          } else {
+            // No results found
+            allPatients = [];
+            filteredPatients = [];
+            
+            showPatientResults();
+            showEmptyState();
+          }
+        } catch (error) {
+          console.error('Error fetching patient data:', error);
+          showError('Failed to retrieve patient data. Please try again.');
+        }
+      }
+
+      async function fetchPatientData(searchName) {
+        try {
+          updateConnectionStatus('connecting');
+          
+          // API configuration 
+          const API_URL = 'https://blueshift.abi-health.com:3000/mobilenumber/';
+          const API_KEY = 'q1riHeoxylJy41TqzOXT75rty/yGU2e1pk+0GGFMrTUJ3fB67uIQXGzC47dvg6s3iSnczDxsK9fm+AStHt9ZDQ==';
+          
+          // Determine the URL based on whether the input is numeric (mobile number)
+          const url = searchName.match(/^\d+$/) ? `${API_URL}${searchName}` : API_URL;
+          
+          console.log(`Making API request to: ${url}`);
+          
+          // Make API call with the provided API key
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'x-api-key': API_KEY,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          updateConnectionStatus('connected');
+          
+          let data = await response.json();
+          console.log('API Response:', data);
+          
+          // Transform the API response to match the expected format
+          if (!data.PatientVisits) {
+            if (Array.isArray(data)) {
+              data = { PatientVisits: data };
+            } else {
+              data = { PatientVisits: [data] };
+            }
+          }
+          
+          return data;
+          
+        } catch (error) {
+          console.error('Error fetching patient data:', error);
+          updateConnectionStatus('error');
+          throw error;
+        }
+      }
+
+      function handleFilter() {
+        const filterValue = filterInput.value.trim().toLowerCase();
+        const genderValue = genderFilter.value;
+        
+        filteredPatients = allPatients.filter(patient => {
+          // Check if the patient object has each property before using it
+          const nameMatch = patient.PNAME ? patient.PNAME.toLowerCase().includes(filterValue) : false;
+          const genderMatch = genderValue === 'all' || (patient.SEX && patient.SEX === genderValue);
+          
+          return nameMatch && genderMatch;
+        });
+        
+        updatePatientTable();
+        
+        if (filteredPatients.length === 0) {
+          showEmptyState();
+        } else {
+          hideEmptyState();
+        }
+      }
+
+      function updatePatientTable() {
+        // Clear existing table rows
+        patientTableBody.innerHTML = '';
+        
+        // Update patient count
+        patientCount.textContent = `${filteredPatients.length} patient${filteredPatients.length !== 1 ? 's' : ''} found`;
+        
+        // Add filtered patients to table
+        filteredPatients.forEach(patient => {
+          const row = document.createElement('tr');
+          
+          // Get the properties safely with fallbacks for missing data
+          const patientId = patient.PATIENTID || 'N/A';
+          const patientName = patient.PNAME || 'N/A';
+          const patientSex = patient.SEX || 'O'; // Default to Other if not present
+          const patientDOB = patient.DOB || null;
+          const patientAge = patient.Age || 'N/A';
+          const patientNumber = patient.PatientNumber || 'N/A';
+          
+          // Format date from "1955-05-19T00:00:00.000Z" to "May 19, 1955"
+          let formattedDOB = 'N/A';
+          if (patientDOB) {
+            try {
+              const dobDate = new Date(patientDOB);
+              if (!isNaN(dobDate.getTime())) {
+                formattedDOB = dobDate.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                });
+              }
+            } catch (error) {
+              console.error('Error formatting date:', error);
+            }
+          }
+          
+          row.innerHTML = `
+            <td>
+              <span class="table-text table-text-primary">${patientId}</span>
+            </td>
+            <td>
+              <span class="table-text table-text-primary">${patientName}</span>
+            </td>
+            <td>
+              <span class="badge ${patientSex === 'M' ? 'badge-blue' : 'badge-pink'}">${patientSex === 'M' ? 'Male' : patientSex === 'F' ? 'Female' : 'Other'}</span>
+            </td>
+            <td>
+              <span class="table-text">${formattedDOB}</span>
+            </td>
+            <td>
+              <span class="table-text">${patientAge}</span>
+            </td>
+            <td>
+              <span class="table-text table-text-secondary">${patientNumber}</span>
+            </td>
+            <td class="td-right">
+              <button class="select-btn" data-patient-id="${patientId}">Select</button>
+            </td>
+          `;
+          
+          patientTableBody.appendChild(row);
+        });
+        
+        // Add event listeners to select buttons
+        document.querySelectorAll('.select-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const patientId = this.dataset.patientId;
+            handlePatientSelection(patientId);
+          });
+        });
+      }
+
+      function encryptData(data) {
+          return btoa(encodeURIComponent(data)); // Base64 encoding
+      }
+	  
+      function handlePatientSelection(patientId) {
+        const selectedPatient = allPatients.find(p => p.PATIENTID === patientId);
+        if (selectedPatient) {
+          const encryptedPatientNumber = encryptData(selectedPatient.PatientNumber);
+        if (confirm(`Patient selected: ${selectedPatient.PNAME} (Patient Number: ${selectedPatient.PatientNumber})\n\nProceed to CRM Dashboard?`)) {
+            window.open(`CRM_Call_Center_App.html?pnumber=${encryptedPatientNumber}`, '_blank');
+        }
+      }
+     }
+
+      function handleRetry() {
+        // Retry the last search
+        handleSearch();
+      }
+
+      function handleClearSearch() {
+        // Clear search input and results
+        searchNameInput.value = '';
+        filterInput.value = '';
+        genderFilter.value = 'all';
+        
+        // Reset state
+        allPatients = [];
+        filteredPatients = [];
+        
+        // Hide patient results
+        hidePatientResults();
+        hideEmptyState();
+      }
+
+      function showLoading() {
+        hideError();
+        hidePatientResults();
+        hideEmptyState();
+        loadingState.style.display = 'flex';
+      }
+
+      function hideLoading() {
+        loadingState.style.display = 'none';
+      }
+
+      function showError(message) {
+        hideLoading();
+        errorMessage.textContent = message || 'An error occurred. Please try again.';
+        errorState.style.display = 'block';
+      }
+
+      function hideError() {
+        errorState.style.display = 'none';
+      }
+
+      function showPatientResults() {
+        hideLoading();
+        hideError();
+        patientResults.style.display = 'block';
+      }
+
+      function hidePatientResults() {
+        patientResults.style.display = 'none';
+      }
+
+      function showEmptyState() {
+        emptyState.style.display = 'block';
+      }
+
+      function hideEmptyState() {
+        emptyState.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

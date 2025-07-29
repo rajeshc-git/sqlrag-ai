@@ -1,0 +1,142 @@
+/* Main Layout Styles */
+body {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.sidebar {
+    background-color: #fff;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.sidebar .nav-link {
+    color: #495057;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(13, 110, 253, 0.15);
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.main-content {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Card and Element Styling */
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.nav-tabs .nav-link {
+    color: #495057;
+    border: none;
+    padding: 10px 15px;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom: 2px solid #0d6efd;
+    background-color: transparent;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+/* Print-specific styles */
+@media print {
+    .sidebar, .nav-tabs, #patientForm, #printReport {
+        display: none !important;
+    }
+    
+    .main-content {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+    }
+    
+    body {
+        background-color: white;
+    }
+    
+    .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+    }
+    
+    #raw {
+        display: none !important;
+    }
+}
+
+/* Medical-themed Styling */
+.text-primary {
+    color: #0d6efd !important;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.table {
+    font-size: 0.95rem;
+}
+
+.table thead {
+    background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-content {
+        padding-top: 1rem;
+    }
+}

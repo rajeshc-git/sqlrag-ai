@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Data Dashboard</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap CSS for Table Styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom CSS styles beyond Tailwind */
+        /* Smooth transitions */
+        .transition {
+            transition: all 0.3s ease;
+        }
+
+        /* ChatGPT-like input styling */
+        #promptInput {
+            min-height: 60px;
+            transition: min-height 0.2s ease;
+        }
+
+            #promptInput:focus {
+                min-height: 80px;
+            }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            th, td {
+                padding: 0.5rem !important;
+                font-size: 0.85rem !important;
+            }
+
+            /* Ensure horizontal scrolling on small screens */
+            .table-responsive {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Adjust font sizes for mobile */
+            .text-3xl {
+                font-size: 1.5rem;
+            }
+
+            /* Stack buttons on mobile */
+            .flex-wrap > * {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* Accessibility focus indicators */
+        button:focus,
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid rgba(59, 130, 246, 0.5);
+            outline-offset: 2px;
+        }
+
+        /* Tooltip styling */
+        [title] {
+            position: relative;
+            cursor: help;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #a0aec0;
+            }
+
+        /* Modal animation */
+        #helpModal {
+            transition: opacity 0.2s ease;
+        }
+
+        /* Ensure inputs are readable in dark mode browsers*/
+        input, select, textarea {
+            color-scheme: light;
+        }
+
+        .typing-container {
+            min-height: 2rem;
+            position: relative;
+        }
+
+        .typing-text {
+            white-space: pre-wrap;
+            font-family: monospace;
+            color: #1f2937;
+            background: #f3f4f6;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+            min-width: 100%;
+        }
+
+        .table {
+            margin-bottom: 0;
+            min-width: 1100px;
+        }
+
+            .table thead th {
+                background-color: #f3f4f6;
+                font-weight: 600;
+                border-bottom: none;
+                padding: 12px 16px;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .table tbody td {
+                padding: 12px 16px;
+                vertical-align: middle;
+            }
+
+        /* Health condition tag styles */
+        .health-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* Avatar */
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        /* Selected count styling */
+        .selected-count {
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .table {
+                min-width: 1000px;
+            }
+
+            .health-tag {
+                font-size: 10px;
+                padding: 3px 6px;
+            }
+
+            .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .selected-count {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .table {
+                min-width: 800px;
+            }
+
+                .table thead th, .table tbody td {
+                    padding: 8px 12px;
+                }
+        }
+
+        /* Campaign Management Styles */
+        .campaign-template {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+            .campaign-template:hover {
+                border-color: #3b82f6;
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+            }
+
+            .campaign-template.selected {
+                border-color: #3b82f6;
+                background-color: rgba(59, 130, 246, 0.05);
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+            }
+
+        .channel-tab {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+            .channel-tab.active {
+                border-bottom-color: #3b82f6;
+                color: #3b82f6;
+                font-weight: 600;
+            }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom checkbox styling */
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 2px solid #cbd5e0;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+            .custom-checkbox.checked {
+                background-color: #3b82f6;
+                border-color: #3b82f6;
+            }
+
+                .custom-checkbox.checked:after {
+                    content: "";
+                    position: absolute;
+                    top: 2px;
+                    left: 5px;
+                    width: 6px;
+                    height: 10px;
+                    border: solid white;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
+
+        .patient-row {
+            transition: background-color 0.2s ease;
+        }
+
+            .patient-row.selected {
+                background-color: rgba(59, 130, 246, 0.05);
+            }
+
+        .template-preview {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: white;
+            min-height: 120px;
+        }
+
+        /* Variable placeholder style */
+        .variable-placeholder {
+            display: inline-block;
+            background-color: #f0f9ff;
+            border: 1px dashed #93c5fd;
+            border-radius: 4px;
+            padding: 0 5px;
+            margin: 0 2px;
+            font-size: 0.9em;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+    <div class="container mx-auto px-6 py-3">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-3xl font-bold text-blue-600">CRMAI Dashboard</h1>
+                    <p class="text-gray-600">Advanced patient data analysis powered by AI</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="campaignBtn" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition hidden">
+                        <i class="fas fa-bullhorn mr-2"></i>Campaign
+                        <span id="selectedCount" class="ml-1 bg-green-200 text-green-800 px-2 py-0.5 rounded-full text-xs hidden">0</span>
+                    </button>
+				    <button id="backBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-chevron-left mr-2"></i>Back
+                    </button>
+                    <button id="helpBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-question-circle mr-2"></i>Help
+                    </button>
+                    <button id="refreshBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main>
+            <!-- Query Input Section -->
+            <section class="mb-8">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-700">Ask about patient data</h2>
+                        <div class="flex flex-col">
+                            <div class="relative">
+                                <textarea id="promptInput" class="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3" placeholder="Example: Show top 5 patients younger than 40 sorted by DOB"></textarea>
+                                <div class="absolute right-3 bottom-3 flex space-x-2">
+                                    <button id="clearBtn" class="text-gray-400 hover:text-gray-600 transition">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <button id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-2">
+                                Try queries like "show patients with age less than 30" or "find female patients sorted by age"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="hidden">
+                <div class="flex justify-center items-center mb-8">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+                    <span class="ml-3 text-blue-600">Processing your query...</span>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-8 rounded-md">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-3"></i>
+                    <span id="errorText">An error occurred while processing your request.</span>
+                </div>
+                <p class="mt-2 text-sm">Please try again or refine your query.</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="flex flex-col items-center justify-center py-12 text-center mb-8 bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="w-24 h-24 mb-4 text-gray-300">
+                    <i class="fas fa-database text-6xl"></i>
+                </div>
+                <h3 class="text-xl font-medium text-gray-600 mb-2">No patient data to display yet</h3>
+                <p class="text-gray-500 max-w-md">Enter a query in the input box above to fetch patient information.</p>
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg text-left max-w-md">
+                    <h4 class="font-medium text-gray-700 mb-2">Example queries:</h4>
+                    <ul class="text-gray-600 space-y-2">
+                        <li><i class="fas fa-chevron-right text-xs text-blue-500 mr-2"></i>Show top 5 patients younger than 40 sorted by DOB</li>
+                        <li><i class="fas fa-chevron-right text-xs text-blue-500 mr-2"></i>Find female patients with age less than 30</li>
+                        <li><i class="fas fa-chevron-right text-xs text-blue-500 mr-2"></i>List patients ordered by registration date</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="hidden">
+                <div class="bg-white rounded-xl shadow-md p-4 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-100 rounded-full p-2 text-blue-500">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-700 mt-4 mb-2">AI Response</h4>
+                            <div class="typing-container">
+                                <div class="typing-text" id="llmResponse"></div>
+                            </div>
+                            <h4 class="font-medium text-gray-700 mb-1 hidden">Query Details</h4>
+                            <p class="text-gray-600 text-sm mb-2 mt-2 hidden" id="queryDetails">Query executed successfully.</p>
+                            <div class="bg-gray-100 p-2 rounded text-sm font-mono text-gray-700 overflow-x-auto hidden" id="sqlQuery">
+                                <!-- SQL will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Action Bar with Selection Count and Campaign Button -->
+                <div id="actionBar" class="flex justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm border border-gray-200 hidden">
+                    <div class="flex items-center">
+                        <div id="tableSelectionCount" class="flex items-center text-gray-600">
+                            <span class="mr-2">0 patients selected</span>
+                            <button id="clearSelectionBtn" class="text-blue-600 hover:underline text-sm hidden">Clear</button>
+                        </div>
+                    </div>
+                    <div>
+                        <button id="tableCreateCampaignBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i class="fas fa-bullhorn mr-2"></i>Create Campaign
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-xl font-semibold text-gray-700">Patient Records</h2>
+                            <div class="text-sm text-gray-500">
+                                <span id="resultCount">0</span> patients found
+                            </div>
+                        </div>
+                        <!-- Table Header -->
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex flex-wrap gap-2 ml-auto">
+                                <div class="relative">
+                                    <input id="tableSearch" type="text" placeholder="Search in results..." class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                                </div>
+                                <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+                                    <option value="">All Gender</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                </select>
+                                <div class="dropdown">
+                                    <button class="px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                        <li><a class="dropdown-item" href="#" id="exportCSV"><i class="fas fa-file-csv mr-2 text-green-600"></i>Export CSV</a></li>
+                                        <li><a class="dropdown-item" href="#" id="printResults"><i class="fas fa-print mr-2 text-blue-600"></i>Print</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Patient Data Table -->
+                        <div class="table-responsive overflow-x-auto">
+                                <table class="table table-hover text-nowrap" id="patientTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">
+                                                <div class="form-check d-flex justify-content-center">
+                                                    <input type="checkbox" class="form-check-input" id="selectAll">
+                                                </div>
+                                            </th>
+                                            <th data-sort="PNAME">Patient Details <i class="fas fa-sort ml-1 text-gray-400"></i></th>
+                                            <th data-sort="OrgName">Org <i class="fas fa-sort ml-1 text-gray-400"></i></th>
+                                            <th data-sort="Location">Location <i class="fas fa-sort ml-1 text-gray-400"></i></th>
+                                            <th data-sort="CONDITION">Health Conditions <i class="fas fa-sort ml-1 text-gray-400"></i></th>
+											<th data-sort="REPEAT">Repeat<i class="fas fa-sort ml-1 text-gray-400"></i></th>
+											<th data-sort="FirstVisitDate">FirstVisitDate<i class="fas fa-sort ml-1 text-gray-400"></i></th>
+											<th data-sort="LastVisitDate">LastVisitDate<i class="fas fa-sort ml-1 text-gray-400"></i></th>
+											<th data-sort="ExpectedVisitDate">ExpectedVisitDate<i class="fas fa-sort ml-1 text-gray-400"></i></th>
+											<th data-sort="TotalVisits">TotalVisits<i class="fas fa-sort ml-1 text-gray-400"></i></th>
+											<th data-sort="TotalAmount">TotalAmount<i class="fas fa-sort ml-1 text-gray-400"></i></th>
+											<th data-sort="AverageTicket">AverageTicket<i class="fas fa-sort ml-1 text-gray-400"></i></th>
+                                            <th>Contact</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="patientTableBody">
+                                        <!-- Table rows will be dynamically added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        <!-- Pagination Controls -->
+                        <div class="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div class="text-sm text-gray-600">
+                                Showing <span id="pageRange">0-0</span> of <span id="totalRecords">0</span> patients
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button id="prevPageBtn" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md text-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="pageNumbers" class="text-sm text-gray-600"></span>
+                                <button id="nextPageBtn" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md text-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Empty Table State -->
+                        <div id="emptyTableState" class="hidden py-12 text-center">
+                            <div class="text-gray-400 mb-2">
+                                <i class="fas fa-filter text-3xl"></i>
+                            </div>
+                            <h4 class="text-lg font-medium text-gray-500">No matching results</h4>
+                            <p class="text-gray-400 text-sm mt-1">Try changing your search or filters</p>
+                        </div>
+                    </div>
+                </div>
+           </section>
+
+            <!-- Campaign Modal -->
+            <div id="campaignModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6 hidden">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+                    <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-gray-800">Create Campaign</h3>
+                        <button id="closeCampaignModalBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <!-- Step Indicator -->
+                        <div class="flex items-center mb-8">
+                            <div class="flex items-center">
+                                <div class="bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center text-white">1</div>
+                                <span class="ml-2 font-medium text-blue-500">Channel</span>
+                            </div>
+                            <div class="h-1 w-12 bg-gray-300 mx-2"></div>
+                            <div class="flex items-center">
+                                <div id="step2Circle" class="bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center text-white">2</div>
+                                <span id="step2Text" class="ml-2 font-medium text-gray-400">Template</span>
+                            </div>
+                            <div class="h-1 w-12 bg-gray-300 mx-2"></div>
+                            <div class="flex items-center">
+                                <div id="step3Circle" class="bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center text-white">3</div>
+                                <span id="step3Text" class="ml-2 font-medium text-gray-400">Review</span>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Steps Content -->
+                        <div id="campaignStep1" class="fade-in">
+                            <h4 class="font-medium text-gray-700 mb-4">Select Communication Channel</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <!-- SMS Channel -->
+                                <div class="campaign-channel rounded-lg border border-gray-200 p-4 hover:!border-blue-500 hover:shadow-md cursor-pointer" data-channel="sms">
+                                    <div class="flex items-center mb-2">
+                                        <div class="bg-blue-100 rounded-full p-2 text-blue-500 mr-3">
+                                            <i class="fas fa-sms text-lg"></i>
+                                        </div>
+                                        <h5 class="font-medium">SMS</h5>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Send text messages directly to patient mobile phones.</p>
+                                    <div class="mt-2 text-xs flex items-center text-gray-500">
+                                        <i class="fas fa-check-circle text-green-500 mr-1"></i> High open rate
+                                    </div>
+                                </div>
+
+                                <!-- Email Channel -->
+                                <div class="campaign-channel rounded-lg border border-gray-200 p-4 hover:!border-blue-500 hover:shadow-md cursor-pointer" data-channel="email">
+                                    <div class="flex items-center mb-2">
+                                        <div class="bg-green-100 rounded-full p-2 text-green-500 mr-3">
+                                            <i class="fas fa-envelope text-lg"></i>
+                                        </div>
+                                        <h5 class="font-medium">Email</h5>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Send detailed messages to patient email addresses.</p>
+                                    <div class="mt-2 text-xs flex items-center text-gray-500">
+                                        <i class="fas fa-check-circle text-green-500 mr-1"></i> Rich content support
+                                    </div>
+                                </div>
+
+                                <!-- WhatsApp Channel -->
+                                <div class="campaign-channel rounded-lg border border-gray-200 p-4 hover:!border-blue-500 hover:shadow-md cursor-pointer" data-channel="whatsapp">
+                                    <div class="flex items-center mb-2">
+                                        <div class="bg-green-100 rounded-full p-2 text-green-500 mr-3">
+                                            <i class="fab fa-whatsapp text-lg"></i>
+                                        </div>
+                                        <h5 class="font-medium">WhatsApp</h5>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Reach patients through WhatsApp messaging.</p>
+                                    <div class="mt-2 text-xs flex items-center text-gray-500">
+                                        <i class="fas fa-check-circle text-green-500 mr-1"></i> Interactive messaging
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end">
+                                <button id="channelNextBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Continue <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Template Selection (Step 2) -->
+                        <div id="campaignStep2" class="hidden fade-in">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-4">Select a Template</h4>
+                                <div id="smsTemplates" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                                    <!-- SMS Template 1 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="sms-1">
+                                        <h5 class="font-medium mb-2">Appointment Reminder</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hi <span class="variable-placeholder">{{patient_name}}</span>, this is a reminder about your expected visit on <span class="variable-placeholder">{{expected_visitdate}}</span>. Please reply YES to confirm or call us to reschedule.
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>160 characters</span>
+                                            <span>Variables: 2</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- SMS Template 2 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="sms-2">
+                                        <h5 class="font-medium mb-2">Medication Reminder</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            <span class="variable-placeholder">{{patient_name}}</span>, don't forget to take your tests<span class="variable-placeholder">{{medication_name}}</span> as prescribed. Need a Revisit? Please contact <span class="variable-placeholder">{{org}}</span> to schedule your visit. Use the code 🏷️ <span contenteditable="true" id="promoCode1" class="font-semibold focus:outline-none focus:ring-2 cursor-text">WELCOMEBACK</span> 🏷️ and get 30% discount on all tests!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>178 characters</span>
+                                            <span>Variables: 3</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- SMS Template 3 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="sms-3">
+                                        <h5 class="font-medium mb-2">Checkup Reminder</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hello <span class="variable-placeholder">{{patient_name}}</span>, it's been <span class="variable-placeholder">{{months_since_visit}}</span> months since your last checkup. Please contact <span class="variable-placeholder">{{org}}</span> to schedule your follow-up visit. Use the code 🏷️ <span contenteditable="true" id="promoCode2" class="font-semibold focus:outline-none focus:ring-2 cursor-text">SAVE20</span> 🏷️ and get 20% discount on all tests!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>165 characters</span>
+                                            <span>Variables: 3</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- SMS Template 4 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="sms-4">
+                                        <h5 class="font-medium mb-2">Flu Shot Reminder</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hi <span class="variable-placeholder">{{patient_name}}</span>, flu season is here! Schedule your flu shot with <span class="variable-placeholder">{{org}}</span>. Reply SHOT to book or call us. Use code 🏷️ <span contenteditable="true" id="promoCode5" class="font-semibold focus:outline-none focus:ring-2 cursor-text">FLUFREE</span> 🏷️ for a free consultation!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>152 characters</span>
+                                            <span>Variables: 2</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- SMS Template 5 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="sms-5">
+                                        <h5 class="font-medium mb-2">Wellness Check Reminder</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hello <span class="variable-placeholder">{{patient_name}}</span>, it’s time for your annual wellness check! Contact <span class="variable-placeholder">{{org}}</span> to book. Use code 🏷️ <span contenteditable="true" id="promoCode6" class="font-semibold focus:outline-none focus:ring-2 cursor-text">WELLNESS10</span> 🏷️ for 10% off!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>145 characters</span>
+                                            <span>Variables: 2</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="emailTemplates" class="grid grid-cols-1 gap-4 hidden">
+                                    <!-- Email Template 1 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="email-1">
+                                        <h5 class="font-medium mb-2">Health Checkup Reminder</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            <p>Dear <span class="variable-placeholder">{{patient_name}}</span>,</p>
+                                            <p>We hope this email finds you well. We noticed it's been <span class="variable-placeholder">{{months_since_visit}}</span> months since your last visit to our clinic.</p>
+                                            <p>Regular checkups are essential for maintaining good health and preventing potential health issues. We recommend scheduling your next appointment soon.</p>
+                                            <p>You can book online <span contenteditable="true" id="link1" class="font-semibold text-blue-600 underline focus:outline-none focus:ring-2 cursor-text">https://abi-health.com</span> or contact<span class="variable-placeholder">{{org}}</span>.<br><br>Use the code 🏷️ <span contenteditable="true" id="promoCode3" class="font-semibold focus:outline-none focus:ring-2 cursor-text">SAVE30</span> 🏷️ and get 30% discount on all tests!</p>
+                                            <p>Best regards,<br><span class="variable-placeholder">{{org}}</span></p>
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>Email Template</span>
+                                            <span>Variables: 4</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Email Template 2 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="email-2">
+                                        <h5 class="font-medium mb-2">Health Newsletter</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            <p>Hello <span class="variable-placeholder">{{patient_name}}</span>,</p>
+                                            <p>We're pleased to share our latest health newsletter with you. This month's topics include:</p>
+                                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                                <li>Tips for managing <span class="variable-placeholder">{{health_condition}}</span></li>
+                                                <li>Seasonal health advice</li>
+                                                <li>New services at our clinic</li>
+                                            </ul>
+                                            <p>If you have any questions, please don't hesitate to contact us. <br><br>Use the code 🏷️ <span contenteditable="true" id="promoCode4" class="font-semibold focus:outline-none focus:ring-2 cursor-text">SAVE30</span> 🏷️ and get 30% discount on all tests!</p>
+
+                                            <p>Best regards,<br><span class="variable-placeholder">{{org}}</span></p>
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>Email Template</span>
+                                            <span>Variables: 3</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Email Template 3 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="email-3">
+                                        <h5 class="font-medium mb-2">Annual Wellness Invitation</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            <p>Dear <span class="variable-placeholder">{{patient_name}}</span>,</p>
+                                            <p>Your health is important to us! It’s time for your annual wellness visit to stay on top of your health goals.</p>
+                                            <p>Book your appointment today at <span contenteditable="true" id="link2" class="font-semibold text-blue-600 underline focus:outline-none focus:ring-2 cursor-text">https://abi-health.com</span> or contact <span class="variable-placeholder">{{org}}</span>.</p>
+                                            <p>Use the code 🏷️ <span contenteditable="true" id="promoCode7" class="font-semibold focus:outline-none focus:ring-2 cursor-text">WELLNESS15</span> 🏷️ for 15% off all wellness services!</p>
+                                            <p>Warm regards,<br><span class="variable-placeholder">{{org}}</span></p>
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>Email Template</span>
+                                            <span>Variables: 3</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Email Template 4 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="email-4">
+                                        <h5 class="font-medium mb-2">Chronic Condition Follow-Up</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            <p>Hello <span class="variable-placeholder">{{patient_name}}</span>,</p>
+                                            <p>We’re here to support you in managing <span class="variable-placeholder">{{health_condition}}</span>. It’s time for your follow-up visit to review your progress.</p>
+                                            <p>Schedule now at <span contenteditable="true" id="link3" class="font-semibold text-blue-600 underline focus:outline-none focus:ring-2 cursor-text">https://abi-health.com</span> or call <span class="variable-placeholder">{{org}}</span>.</p>
+                                            <p>Use the code 🏷️ <span contenteditable="true" id="promoCode8" class="font-semibold focus:outline-none focus:ring-2 cursor-text">CARE20</span> 🏷️ for 20% off your visit!</p>
+                                            <p>Best wishes,<br><span class="variable-placeholder">{{org}}</span></p>
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>Email Template</span>
+                                            <span>Variables: 3</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="whatsappTemplates" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                                    <!-- WhatsApp Template 1 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="whatsapp-1">
+                                        <h5 class="font-medium mb-2">Appointment Confirmation</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hello <span class="variable-placeholder">{{patient_name}}</span>! 👋
+
+                                            Your expected visit date is <span class="variable-placeholder">{{expected_visitdate}}</span>.
+
+                                            Please arrive 15 minutes early to complete any necessary paperwork.
+
+                                            Need to reschedule? Please contact <span class="variable-placeholder">{{org}}</span>.
+
+                                            Use the code 🏷️ <span contenteditable="true" id="promoCode3" class="font-semibold focus:outline-none focus:ring-2 cursor-text">SAVE30</span> 🏷️ and get 30% discount on all tests!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>WhatsApp Message</span>
+                                            <span>Variables: 4</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- WhatsApp Template 2 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="whatsapp-2">
+                                        <h5 class="font-medium mb-2">Lab Results Notification</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hi <span class="variable-placeholder">{{patient_name}}</span>,
+
+                                            Your recent lab results are now available at <span class="variable-placeholder">{{org}}</span>.
+
+                                            To discuss your results:
+                                            • Log in to our patient portal
+                                            • Schedule a follow-up appointment
+                                            • Call us during office hours
+
+                                            Your health is our priority!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>WhatsApp Message</span>
+                                            <span>Variables: 2</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- WhatsApp Template 3 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="whatsapp-3">
+                                        <h5 class="font-medium mb-2">Vaccination Reminder</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hi <span class="variable-placeholder">{{patient_name}}</span>! 💉
+
+                                            Your following prescribed tests are due.<span class="variable-placeholder">{{medication_name}}</span> Protect your health by scheduling visit with <span class="variable-placeholder">{{org}}</span>.
+
+                                            Book now: <span contenteditable="true" id="link4" class="font-semibold text-blue-600 underline focus:outline-none focus:ring-2 cursor-text">https://abi-health.com</span>
+
+                                            Use code 🏷️ <span contenteditable="true" id="promoCode9" class="font-semibold focus:outline-none focus:ring-2 cursor-text">VACCINE10</span> 🏷️ for 10% off!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>WhatsApp Message</span>
+                                            <span>Variables: 3</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- WhatsApp Template 4 -->
+                                    <div class="campaign-template p-4 cursor-pointer" data-template-id="whatsapp-4">
+                                        <h5 class="font-medium mb-2">Health Screening Invitation</h5>
+                                        <div class="template-preview p-3 mb-3 text-sm">
+                                            Hello <span class="variable-placeholder">{{patient_name}}</span>! 🩺
+
+                                            Stay proactive with a health screening at <span class="variable-placeholder">{{org}}</span>.
+
+                                            Book your slot: <span contenteditable="true" id="link5" class="font-semibold text-blue-600 underline focus:outline-none focus:ring-2 cursor-text">https://abi-health.com</span>
+
+                                            Use code 🏷️ <span contenteditable="true" id="promoCode10" class="font-semibold focus:outline-none focus:ring-2 cursor-text">SCREEN20</span> 🏷️ for 20% off!
+                                        </div>
+                                        <div class="flex justify-between text-xs text-gray-500">
+                                            <span>WhatsApp Message</span>
+                                            <span>Variables: 2</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 flex justify-between">
+                                <button id="templateBackBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                    <i class="fas fa-arrow-left mr-2"></i> Back
+                                </button>
+                                <button id="templateNextBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Continue <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Review & Send (Step 3) -->
+                        <div id="campaignStep3" class="hidden fade-in">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-4">Review & Send Campaign</h4>
+
+                                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h5 class="text-sm font-medium text-gray-700 mb-2">Campaign Details</h5>
+                                            <div class="bg-white rounded-md p-3 border border-gray-200">
+                                                <div class="flex items-center mb-2">
+                                                    <span class="text-gray-600 text-sm w-28">Channel:</span>
+                                                    <span id="reviewChannel" class="text-gray-900 text-sm font-medium">-</span>
+                                                </div>
+                                                <div class="flex items-center mb-2">
+                                                    <span class="text-gray-600 text-sm w-28">Template:</span>
+                                                    <span id="reviewTemplate" class="text-gray-900 text-sm font-medium">-</span>
+                                                </div>
+                                                <div class="flex items-center">
+                                                    <span class="text-gray-600 text-sm w-28">Recipients:</span>
+                                                    <span id="reviewRecipients" class="text-gray-900 text-sm font-medium">0 patients</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h5 class="text-sm font-medium text-gray-700 mb-2">Message Preview</h5>
+                                            <div class="bg-white rounded-md p-3 border border-gray-200">
+                                                <div id="reviewMessagePreview" class="text-sm text-gray-800 whitespace-pre-line">
+                                                    <!-- Template preview will be shown here -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-6">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-2">Campaign Name</h5>
+                                    <input type="text" id="campaignName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter a name for this campaign">
+                                </div>
+
+                                <div class="mb-6">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-2">Scheduled Delivery</h5>
+                                    <div class="flex items-center space-x-2 mb-3">
+                                        <input type="radio" id="sendNow" name="scheduleOption" value="now" checked>
+                                        <label for="sendNow" class="text-sm text-gray-700">Send immediately</label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" id="sendLater" name="scheduleOption" value="later">
+                                        <label for="sendLater" class="text-sm text-gray-700">Schedule for later</label>
+                                    </div>
+                                    <div id="scheduleDateContainer" class="mt-3 hidden">
+                                        <input type="datetime-local" id="scheduleDateTime" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 flex justify-between">
+                                <button id="reviewBackBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                    <i class="fas fa-arrow-left mr-2"></i> Back
+                                </button>
+                                <button id="sendCampaignBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Send Campaign <i class="fas fa-paper-plane ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Modal -->
+            <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6 hidden">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                    <div class="text-center mb-4">
+                        <div class="bg-green-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Campaign Sent Successfully!</h3>
+                        <p class="text-gray-600">Your campaign has been successfully created and scheduled for delivery.</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="flex items-center mb-2">
+                            <span class="text-gray-600 text-sm w-24">Name:</span>
+                            <span id="successCampaignName" class="text-gray-900 text-sm font-medium">-</span>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <span class="text-gray-600 text-sm w-24">Recipients:</span>
+                            <span id="successRecipients" class="text-gray-900 text-sm font-medium">0 patients</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 text-sm w-24">Delivery:</span>
+                            <span id="successDelivery" class="text-gray-900 text-sm font-medium">Immediate</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button id="closeSuccessModalBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition">
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help Modal -->
+            <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6 hidden">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+                    <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-gray-800">Help & Documentation</h3>
+                        <button id="closeHelpModalBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <!-- Help Content -->
+                        <div class="mb-8">
+                            <h4 class="text-lg font-medium text-gray-700 mb-3">Using the Patient Dashboard</h4>
+                            <p class="text-gray-600 mb-4">
+                                This dashboard allows you to query patient data, view detailed information, and create targeted campaigns.
+                            </p>
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                                <h5 class="font-medium text-blue-700 mb-2">Quick Tips</h5>
+                                <ul class="space-y-2 text-blue-800">
+                                    <li><i class="fas fa-chevron-right text-xs mr-2"></i>Use the query box to ask questions about your patient data</li>
+                                    <li><i class="fas fa-chevron-right text-xs mr-2"></i>Select patients from the table to include in campaigns</li>
+                                    <li><i class="fas fa-chevron-right text-xs mr-2"></i>Create targeted campaigns via SMS, Email, or WhatsApp</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Query Examples Section -->
+                        <div class="mb-8">
+                            <h4 class="text-lg font-medium text-gray-700 mb-3">Query Examples</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <h5 class="font-medium text-gray-700 mb-2">Patient Demographics</h5>
+                                    <ul class="space-y-2 text-gray-600">
+                                        <li><code class="bg-gray-100 px-2 py-1 rounded">Show all male patients over 65</code></li>
+                                        <li><code class="bg-gray-100 px-2 py-1 rounded">List patients from Chicago sorted by age</code></li>
+                                        <li><code class="bg-gray-100 px-2 py-1 rounded">Find patients with birthday this month</code></li>
+                                    </ul>
+                                </div>
+
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <h5 class="font-medium text-gray-700 mb-2">Health Conditions</h5>
+                                    <ul class="space-y-2 text-gray-600">
+                                        <li><code class="bg-gray-100 px-2 py-1 rounded">Find patients with diabetes</code></li>
+                                        <li><code class="bg-gray-100 px-2 py-1 rounded">Show hypertension patients over 50</code></li>
+                                        <li><code class="bg-gray-100 px-2 py-1 rounded">List patients with multiple conditions</code></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Guide Section -->
+                        <div>
+                            <h4 class="text-lg font-medium text-gray-700 mb-3">Creating Campaigns</h4>
+                            <ol class="space-y-3 text-gray-600 list-decimal list-inside mb-4">
+                                <li>Select patients from the table by checking the boxes next to their names</li>
+                                <li>Click the "Create Campaign" button above the table</li>
+                                <li>Choose a communication channel (SMS, Email, or WhatsApp)</li>
+                                <li>Select an appropriate template</li>
+                                <li>Review campaign details and send or schedule for later</li>
+                            </ol>
+                            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
+                                <h5 class="font-medium text-yellow-700 mb-2">Important Notes</h5>
+                                <ul class="space-y-2 text-yellow-800">
+                                    <li><i class="fas fa-exclamation-circle text-xs mr-2"></i>Ensure patient contact information is up-to-date before sending campaigns</li>
+                                    <li><i class="fas fa-exclamation-circle text-xs mr-2"></i>Review all message content before sending to confirm correct variable substitution</li>
+                                    <li><i class="fas fa-exclamation-circle text-xs mr-2"></i>Campaigns cannot be cancelled once sent</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Footer -->
+        <footer class="mt-12 mb-6">
+            <div class="border-t border-gray-200 pt-6">
+                <div class="flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
+                    <div>
+                        &copy; 2023 CRMAI Health Systems. All rights reserved.
+                    </div>
+                    <div class="mt-2 md:mt-0">
+                        <span>Privacy Policy</span>
+                        <span class="mx-2">|</span>
+                        <span>Terms of Service</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Application Script -->
+    <script>
+       document.addEventListener('DOMContentLoaded', function () {
+        // DOM Elements
+        const promptInput = document.getElementById('promptInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const helpBtn = document.getElementById('helpBtn');
+		const backBtn = document.getElementById('backBtn');
+        const emptyState = document.getElementById('emptyState');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const resultsSection = document.getElementById('resultsSection');
+        const llmResponse = document.getElementById('llmResponse');
+        const resultCount = document.getElementById('resultCount');
+        const patientTableBody = document.getElementById('patientTableBody');
+        const tableSearch = document.getElementById('tableSearch');
+        const statusFilter = document.getElementById('statusFilter');
+        const emptyTableState = document.getElementById('emptyTableState');
+        const sqlQuery = document.getElementById('sqlQuery');
+        const exportBtn = document.getElementById('exportCSV');
+        const queryDetails = document.getElementById('queryDetails');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageNumbers = document.getElementById('pageNumbers');
+        const pageRange = document.getElementById('pageRange');
+	    const totalRecords = document.getElementById('totalRecords');
+        const actionBar = document.getElementById('actionBar');
+        const tableSelectionCount = document.getElementById('tableSelectionCount');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+        
+        //campaign related
+        const tableCreateCampaignBtn = document.getElementById('tableCreateCampaignBtn');
+        const campaignBtn = document.getElementById('campaignBtn');
+        const selectedCount = document.getElementById('selectedCount');
+
+        const campaignModal = document.getElementById('campaignModal');
+        const closeCampaignModalBtn = document.getElementById('closeCampaignModalBtn');
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
+        const successModal = document.getElementById('successModal');
+        const closeSuccessModalBtn = document.getElementById('closeSuccessModalBtn');
+
+
+        // Campaign modal elements
+        const campaignStep1 = document.getElementById('campaignStep1');
+        const campaignStep2 = document.getElementById('campaignStep2');
+        const campaignStep3 = document.getElementById('campaignStep3');
+        const channelNextBtn = document.getElementById('channelNextBtn');
+        const templateBackBtn = document.getElementById('templateBackBtn');
+        const templateNextBtn = document.getElementById('templateNextBtn');
+        const reviewBackBtn = document.getElementById('reviewBackBtn');
+        const sendCampaignBtn = document.getElementById('sendCampaignBtn');
+        const campaignChannels = document.querySelectorAll('.campaign-channel');
+        const step2Circle = document.getElementById('step2Circle');
+        const step2Text = document.getElementById('step2Text');
+        const step3Circle = document.getElementById('step3Circle');
+        const step3Text = document.getElementById('step3Text');
+        const smsTemplates = document.getElementById('smsTemplates');
+        const emailTemplates = document.getElementById('emailTemplates');
+        const whatsappTemplates = document.getElementById('whatsappTemplates');
+        const campaignTemplates = document.querySelectorAll('.campaign-template');
+        const reviewChannel = document.getElementById('reviewChannel');
+        const reviewTemplate = document.getElementById('reviewTemplate');
+        const reviewRecipients = document.getElementById('reviewRecipients');
+        const reviewMessagePreview = document.getElementById('reviewMessagePreview');
+        const campaignName = document.getElementById('campaignName');
+        const sendNow = document.getElementById('sendNow');
+        const sendLater = document.getElementById('sendLater');
+        const scheduleDateContainer = document.getElementById('scheduleDateContainer');
+        const scheduleDateTime = document.getElementById('scheduleDateTime');
+        const successCampaignName = document.getElementById('successCampaignName');
+        const successRecipients = document.getElementById('successRecipients');
+        const successDelivery = document.getElementById('successDelivery');
+
+    // Global state to store the current patient data
+            let patientsData = [];
+            let filteredPatientsData = [];
+            let selectedPatients = [];
+            let currentSortField = '';
+            let currentSortDirection = 'asc';
+            let currentPage = 1;
+            const rowsPerPage = 100;
+            let activeChannel = null;
+            let activeTemplate = null;
+
+
+            setDefaultDateTime();
+    // Set default date time for scheduler
+        function setDefaultDateTime() {
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            now.setMinutes(0);
+
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            scheduleDateTime.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+    // Event Listeners
+        submitBtn.addEventListener('click', submitQuery);
+        promptInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitQuery();
+                }
+            });
+        clearBtn.addEventListener('click', clearPrompt);
+        refreshBtn.addEventListener('click', function () {
+                if (promptInput.value.trim()) {
+                    submitQuery();
+                } else {
+                    showEmptyState();
+                }
+            });
+        helpBtn.addEventListener('click', toggleHelpModal);
+		backBtn.addEventListener('click', () => history.back());
+        closeHelpModalBtn.addEventListener('click', toggleHelpModal);
+        tableSearch.addEventListener('input', () => { currentPage = 1; filterTableData(); });
+        statusFilter.addEventListener('change', () => { currentPage = 1; filterTableData(); });
+        exportBtn.addEventListener('click', exportTableData);
+        prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); updatePagination(); } });
+        nextPageBtn.addEventListener('click', () => { if (currentPage < Math.ceil(filteredPatientsData.length / rowsPerPage)) { currentPage++; renderTable(); updatePagination(); } });
+        selectAllCheckbox.addEventListener('change', toggleSelectAll);
+        clearSelectionBtn.addEventListener('click', clearSelection);
+
+    // Campaign controls
+        tableCreateCampaignBtn.addEventListener('click', showCampaignModal);
+        campaignBtn.addEventListener('click', showCampaignModal);
+        closeCampaignModalBtn.addEventListener('click', hideCampaignModal);
+
+    // Campaign steps navigation
+        campaignChannels.forEach(channel => {
+                channel.addEventListener('click', selectChannel);
+            });
+
+    // Add event listeners to table headers for sorting
+        document.querySelectorAll('th[data-sort]').forEach(header => {
+                header.addEventListener('click', () => {
+                    const sortField = header.getAttribute('data-sort');
+                    sortTable(sortField);
+                });
+            });
+
+    // Click outside modal to close
+        window.addEventListener('click', function (e) {
+                if (e.target === helpModal) {
+                    toggleHelpModal();
+                }
+            });
+
+
+        channelNextBtn.addEventListener('click', goToTemplateStep);
+        templateBackBtn.addEventListener('click', backToChannelStep);
+        templateNextBtn.addEventListener('click', goToReviewStep);
+        reviewBackBtn.addEventListener('click', backToTemplateStep);
+
+	// Template selection
+        campaignTemplates.forEach(template => {
+                template.addEventListener('click', selectTemplate);
+            });
+
+    // Initial setup
+        showEmptyState();
+
+    // Function to generate unique colors for conditions
+        function generateColorForCondition(condition) {
+                // Use a hash function to generate a consistent hue for each condition
+                let hash = 0;
+                for (let i = 0; i < condition.length; i++) {
+                    hash = condition.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const hue = Math.abs(hash % 360);
+                return {
+                    background: `hsl(${hue}, 60%, 92%)`,
+                    color: `hsl(${hue}, 45%, 30%)`
+                };
+            }
+
+    // Function to format health conditions as tags
+        function formatHealthConditions(conditions) {
+                if (!conditions || conditions === 'N/A') {
+                    return '<span class="text-muted">No conditions recorded</span>';
+                }
+                const conditionList = conditions.split(',').map(c => c.trim()).slice(0, 10);
+                let conditionHtml = '<div class="d-flex flex-wrap">';
+                conditionList.forEach(condition => {
+                    const colors = generateColorForCondition(condition);
+                    conditionHtml += `<div class="health-tag" style="background-color: ${colors.background}; color: ${colors.color}">${condition}</div>`;
+                });
+                if (conditions.split(',').length > 10) {
+                    conditionHtml += `<div class="text-muted small">+ ${conditions.split(',').length - 10} more</div>`;
+                }
+                conditionHtml += '</div>';
+                return conditionHtml;
+            }
+
+    // Schedule options
+        sendNow.addEventListener('change', toggleScheduleOptions);
+        sendLater.addEventListener('change', toggleScheduleOptions);
+
+    // Send campaign
+        sendCampaignBtn.addEventListener('click', sendCampaign);
+
+        closeSuccessModalBtn.addEventListener('click', hideSuccessModal);
+
+    // Export buttons
+        document.getElementById('printResults').addEventListener('click', printResults);
+
+    // Handle form submission
+        function submitQuery() {
+                const prompt = promptInput.value.trim();
+                if (!prompt) {
+                    showError('Please enter a query first.');
+                    return;
+                }
+
+                showLoading();
+
+                // Prepare the request
+                const requestData = {
+                    prompt: prompt
+                };
+
+                // Make the API call
+                fetch('http://localhost:8001/query-patients/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok: ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        hideLoading();
+                        hideError();
+                        processResponse(data);
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showError(`Error: ${error.message}`);
+                        console.error('Error:', error);
+                    });
+            }
+
+    // Process API response
+        function processResponse(data) {
+                if (data && data.result && Array.isArray(data.result)) {
+                    patientsData = data.result;
+                    filteredPatientsData = [...patientsData];
+                    selectedPatients = [];
+                    currentPage = 1;
+                    if (data.query) {
+                        sqlQuery.textContent = data.query;
+                    }
+                    if (data.result_count !== undefined) {
+                        resultCount.textContent = data.result_count;
+                        queryDetails.textContent = `Query returned ${data.result_count} patients.`;
+                    }
+                    // Display llm_response with typing effect
+                    if (data.llm_response) {
+                        let cleanedText = removeSQLFromText(data.llm_response);
+                        typeText(llmResponse, cleanedText);
+                    } else {
+                        llmResponse.textContent = 'No AI response available.';
+                    }
+                    renderTable();
+                    updatePagination();
+                    updateSelectionCount();
+                    hideEmptyState();
+                    showResults();
+                    // Show the results section and action bar
+                    actionBar.classList.remove('hidden');
+                } else {
+                    showError('Invalid response format from the server.');
+                }
+              }
+
+    // Remove SQL from LLM response
+        function removeSQLFromText(text) {
+                const sqlRegex = /\b(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TRUNCATE|GRANT|REVOKE|MERGE|CALL|EXPLAIN|LOCK|UNLOCK)\b[\s\S]*?(?=\n\s*\n|$)/gi;
+                text = text.replace(sqlRegex, '').trim();
+                text = text.replace(/\n\s*\n\s*\n+/g, '\n\n').trim();
+                if (!text) {
+                    const hour = new Date().getHours();
+                    let greeting = '';
+                    if (hour >= 5 && hour < 12) {
+                        greeting = "Good Morning";
+                    } else if (hour >= 12 && hour < 17) {
+                        greeting = "Good Afternoon";
+                    } else if (hour >= 17 && hour < 21) {
+                        greeting = "Good Evening";
+                    } else {
+                        greeting = "Good Night";
+                    }
+
+                    // List of dynamic text templates
+                    const responses = [
+                        `${greeting}! Here are the records you requested in the table below. Let me know if I can assist you further.`,
+                        `${greeting}! Please find the table with the records you need. Let me know if you have any other questions.`,
+                        `${greeting}! I've prepared the table with the data you requested. If you need any more help, feel free to ask.`,
+                        `${greeting}! The records have been displayed in the table below. Let me know if you need further details.`,
+                        `${greeting}! Here are the details you requested, shown in a table. Feel free to reach out if you need anything else.`,
+                        `${greeting}! I've gathered the records as per your request. Let me know if you need any further assistance.`,
+                        `${greeting}! Below is the table with the requested records. Let me know if there's anything else I can help with.`,
+                        `${greeting}! Please check the table below for the records. Let me know if you'd like to request something else.`,
+                        `${greeting}! The information you need is listed below in the table. Let me know if you need further clarification.`,
+                        `${greeting}! Below are the records you're looking for. Please let me know if I can assist you further.`,
+                        `${greeting}! The table below contains the requested records. Let me know if you need more details.`,
+                        `${greeting}! Here are the requested records in the table. Let me know if you'd like me to fetch more information.`
+                    ];
+
+                    // Randomly select a response from the list
+                    const randomIndex = Math.floor(Math.random() * responses.length);
+                    text = responses[randomIndex];
+                }
+                const wordRegex = /\b(SQL query|sql|query)\b/gi;
+                return text.replace(wordRegex, 'patient records');
+            }
+
+    // Typing Effect
+        function typeText(element, text) {
+                element.textContent = '';
+                element.classList.add('typing-cursor');
+                let i = 0;
+                const speed = 30;
+                function type() {
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        i++;
+                        setTimeout(type, speed);
+                    } else {
+                        element.classList.remove('typing-cursor');
+                    }
+                }
+                type();
+            }
+
+    // Render table
+        function renderTable() {
+               if (filteredPatientsData.length === 0) {
+                   patientTableBody.innerHTML = `
+            <tr>
+                <td colspan="13" class="text-center py-4">
+                    <div class="text-muted">
+                        <i class="bi bi-search fs-3 d-block mb-2"></i>
+                        No patients found. Please search or apply filters.
+                    </div>
+                </td>
+            </tr>
+        `;
+                   emptyTableState.classList.remove('hidden');
+                   selectAllCheckbox.checked = false;
+                   updateSelectionCount();
+                   updatePagination();
+                   return;
+               }
+
+               emptyTableState.classList.add('hidden');
+               patientTableBody.innerHTML = '';
+               const start = (currentPage - 1) * rowsPerPage;
+               const end = start + rowsPerPage;
+               const paginatedData = filteredPatientsData.slice(start, end);
+
+               paginatedData.forEach(patient => {
+                   const row = document.createElement('tr');
+
+                   // Format dates
+                   const FirstVisit = patient.FirstVisitDate ? new Date(patient.FirstVisitDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+                   const LastVisit = patient.LastVisitDate ? new Date(patient.LastVisitDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+                   const ExpectedVisit = patient.ExpectedVisitDate ? new Date(patient.ExpectedVisitDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+
+                   // Create patient avatar (initials)
+                   let initials = '';
+                   if (patient.PNAME) {
+                       const nameParts = patient.PNAME.split(' ');
+                       if (nameParts.length >= 2) {
+                           initials = nameParts[0].charAt(0) + nameParts[1].charAt(0);
+                       } else if (nameParts.length === 1) {
+                           initials = nameParts[0].charAt(0);
+                       }
+                   }
+
+                   // Format health conditions
+                   const healthConditionHtml = formatHealthConditions(patient.CONDITION);
+                   // Check if patient is selected
+                   const isSelected = selectedPatients.includes(patient.PatientNumber);
+
+                   row.innerHTML = `
+            <td class="text-center">
+                <div class="form-check d-flex justify-content-center">
+                    <input type="checkbox" class="form-check-input patient-select" data-patient-id="${patient.PatientNumber}" ${isSelected ? 'checked' : ''}>
+                </div>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-3">${initials.toUpperCase()}</div>
+                    <div>
+                        <div class="fw-bold">${patient.PNAME || 'N/A'}</div>
+                        <div class="text-muted small">${patient.PatientNumber || 'N/A'}</div>
+                        <div class="text-muted small">${patient.Age || 'N/A'}</div>
+                        <div class="text-muted small">${formatGender(patient.SEX)}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${patient.OrgName || 'N/A'}</td>
+            <td>${patient.Location || 'N/A'}</td>
+            <td>
+                ${healthConditionHtml}
+            </td>
+			<td>${patient.REPEAT || 'N/A'}</td>
+			<td>${FirstVisit || 'N/A'}</td>
+			<td>${LastVisit || 'N/A'}</td>
+			<td>${ExpectedVisit || 'N/A'}</td>
+			<td>${patient.TotalVisits || 'N/A'}</td>
+			<td>${patient.TotalAmount || 'N/A'}</td>
+			<td>${patient.AverageTicket || 'N/A'}</td>
+            <td>
+                <div class="flex space-x-2">
+                    ${patient.MobileNumber ? `<button class="text-blue-500 hover:text-blue-700" title="Call ${patient.MobileNumber}"><i class="fas fa-phone"></i></button>` : ''}
+                    ${patient.EMail ? `<button class="text-blue-500 hover:text-blue-700" title="Email ${patient.EMail}"><i class="fas fa-envelope"></i></button>` : ''}
+                </div>
+            </td>
+        `;
+
+                   patientTableBody.appendChild(row);
+               });
+
+               // Update "Select All" checkbox state based on current page
+               const allCurrentPageSelected = paginatedData.every(patient => selectedPatients.includes(patient.PatientNumber));
+               selectAllCheckbox.checked = allCurrentPageSelected;
+
+               // Add event listener to checkbox
+               document.querySelectorAll('.patient-select').forEach(checkbox => {
+                   checkbox.addEventListener('change', function () {
+                       const patientId = this.getAttribute('data-patient-id');
+                       if (this.checked) {
+                           if (!selectedPatients.includes(patientId)) {
+                               selectedPatients.push(patientId);
+                           }
+                       } else {
+                           const index = selectedPatients.indexOf(patientId);
+                           if (index > -1) {
+                               selectedPatients.splice(index, 1);
+                           }
+                       }
+                       updateSelectionCount();
+                   });
+               });
+           }
+
+    // Toggle select all patients
+        function toggleSelectAll() {
+               const isChecked = selectAllCheckbox.checked;
+
+               if (isChecked) {
+                   // Select all patients from filteredPatientsData
+                   selectedPatients = filteredPatientsData.map(patient => patient.PatientNumber);
+               } else {
+                   // Deselect only patients on the current page
+                   const start = (currentPage - 1) * rowsPerPage;
+                   const end = start + rowsPerPage;
+                   const paginatedData = filteredPatientsData.slice(start, end);
+                   const currentPagePatientIds = paginatedData.map(patient => patient.PatientNumber);
+
+                   // Remove only current page patient IDs from selectedPatients
+                   selectedPatients = selectedPatients.filter(id => !currentPagePatientIds.includes(id));
+               }
+
+               // Update the UI
+               renderTable();
+               updateSelectionCount();
+           }
+
+    // Toggle patient selection
+        function togglePatientSelection(patientId) {
+            const index = selectedPatients.indexOf(patientId);
+
+            if (index === -1) {
+                // Select patient
+                selectedPatients.push(patientId);
+            } else {
+                // Unselect patient
+                selectedPatients.splice(index, 1);
+            }
+
+            // Update UI
+            renderTable();
+            updateSelectionCount();
+        }
+
+    // Update selection count
+        let previousCount = -1;
+        function updateSelectionCount() {
+               const count = selectedPatients.length;
+
+               // Early exit if count hasn't changed to avoid unnecessary DOM updates
+               if (count === previousCount) return;
+
+               // Store the current count for comparison in the next call
+               previousCount = count;
+
+               // Store DOM elements for reusability
+               const selectionCountSpan = tableSelectionCount.querySelector('span');
+               const isDisabled = count === 0;
+
+               // Only update the text if it has changed
+               const selectionText = `${count} ${count === 1 ? 'patient' : 'patients'} selected`;
+               if (selectionCountSpan.textContent !== selectionText) {
+                   selectionCountSpan.textContent = selectionText;
+               }
+
+               // Update campaign button state only if it changes
+               if (tableCreateCampaignBtn.disabled !== isDisabled) {
+                   tableCreateCampaignBtn.disabled = isDisabled;
+               }
+
+               // Show/hide the clear selection button based on count
+               const clearSelectionHidden = clearSelectionBtn.classList.contains('hidden');
+               if (count > 0 && clearSelectionHidden) {
+                   clearSelectionBtn.classList.remove('hidden');
+               } else if (count === 0 && !clearSelectionHidden) {
+                   clearSelectionBtn.classList.add('hidden');
+               }
+
+               // Update the header campaign button visibility and count display
+               const campaignHidden = campaignBtn.classList.contains('hidden');
+               const selectedCountHidden = selectedCount.classList.contains('hidden');
+               if (count > 0) {
+                   if (campaignHidden) campaignBtn.classList.remove('hidden');
+                   if (selectedCountHidden) selectedCount.classList.remove('hidden');
+                   if (selectedCount.textContent !== String(count)) {
+                       selectedCount.textContent = count;
+                   }
+               } else {
+                   if (!campaignHidden) campaignBtn.classList.add('hidden');
+                   if (!selectedCountHidden) selectedCount.classList.add('hidden');
+               }
+           }
+
+
+    // Format gender
+        function formatGender(sex) {
+                if (!sex) return 'N/A';
+                switch (sex.toUpperCase()) {
+                    case 'M': return 'Male';
+                    case 'F': return 'Female';
+                    default: return sex;
+                }
+            }
+
+    // Clear selection
+        function clearSelection() {
+            selectedPatients = [];
+
+            // Update UI
+            if (selectAllCheckbox) {
+                selectAllCheckbox.classList.remove('checked');
+            }
+            renderTable();
+            updateSelectionCount();
+    }
+
+    // Filter table data
+        function filterTableData() {
+                const searchTerm = tableSearch.value.toLowerCase();
+                const statusValue = statusFilter.value;
+                filteredPatientsData = patientsData.filter(patient => {
+                    // Status filter
+                    if (statusValue && patient.SEX !== statusValue) {
+                        return false;
+                    }
+
+                    // Search filter - check in all string fields
+                    if (searchTerm) {
+                        return Object.entries(patient).some(([key, value]) => {
+                            if (typeof value === 'string') {
+                                return value.toLowerCase().includes(searchTerm);
+                            }
+                            if (typeof value === 'number') {
+                                return value.toString().includes(searchTerm);
+                            }
+                            return false;
+                        });
+                    }
+
+                    return true;
+                });
+                currentPage = 1;
+                selectedPatients = selectedPatients.filter(id =>
+                    filteredPatientsData.some(patient => patient.PatientNumber === id)
+                );
+                renderTable();
+                updatePagination();
+                updateSelectionCount();
+            }
+
+    // Sort table
+        function sortTable(field) {
+                // Toggle direction if clicking the same field
+                if (currentSortField === field) {
+                    currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortField = field;
+                    currentSortDirection = 'asc';
+                }
+
+                // Sort the data
+                filteredPatientsData.sort((a, b) => {
+                    let valueA = a[field] || '';
+                    let valueB = b[field] || '';
+
+                    // Handle strings
+                    if (typeof valueA === 'string' && typeof valueB === 'string') {
+                        valueA = valueA.toLowerCase();
+                        valueB = valueB.toLowerCase();
+                    }
+
+                    // Compare values
+                    if (valueA < valueB) return currentSortDirection === 'asc' ? -1 : 1;
+                    if (valueA > valueB) return currentSortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                // Update visual indicators
+                document.querySelectorAll('th[data-sort] i').forEach(icon => {
+                    icon.className = 'fas fa-sort ml-1 text-gray-400';
+                });
+
+                const sortIcon = document.querySelector(`th[data-sort="${field}"] i`);
+                if (sortIcon) {
+                    sortIcon.className = `fas fa-sort-${currentSortDirection === 'asc' ? 'up' : 'down'} ml-1 text-blue-500`;
+                }
+                currentPage = 1;
+                renderTable();
+                updatePagination();
+            }
+
+    // Update pagination
+        function updatePagination() {
+                const totalPages = Math.ceil(filteredPatientsData.length / rowsPerPage);
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+                const start = (currentPage - 1) * rowsPerPage + 1;
+                const end = Math.min(currentPage * rowsPerPage, filteredPatientsData.length);
+                pageRange.textContent = filteredPatientsData.length ? `${start}-${end}` : '0-0';
+                totalRecords.textContent = filteredPatientsData.length;
+                pageNumbers.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+            }
+
+    // Export table data
+        function exportTableData() {
+                if (filteredPatientsData.length === 0) {
+                    showError('No data to export');
+                    return;
+                }
+
+                // Create CSV content
+                const headers = Object.keys(filteredPatientsData[0]).join(',');
+                const rows = filteredPatientsData.map(patient => {
+                    return Object.values(patient).map(value => {
+                        if (typeof value === 'string' && value.includes(',')) {
+                            return `"${value}"`;
+                        }
+                        return value;
+                    }).join(',');
+                });
+
+                const csvContent = [headers, ...rows].join('\n');
+                // Create download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `patients_data_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.style.display = 'none';
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+    // Print results
+        function printResults() {
+            window.print();
+        }
+
+    // Clear prompt
+        function clearPrompt() {
+                promptInput.value = '';
+                promptInput.focus();
+            }
+
+    // Toggle help modal
+        function toggleHelpModal() {
+                helpModal.classList.toggle('hidden');
+            }
+        
+    // Show the campaign modal
+        function showCampaignModal() {
+            // Reset modal state
+            resetCampaignModal();
+
+            // Set recipient count
+            reviewRecipients.textContent = `${selectedPatients.length} patients`;
+
+            // Show modal
+            campaignModal.classList.remove('hidden');
+
+            // Set focus to first channel
+            if (campaignChannels.length > 0) {
+                campaignChannels[0].focus();
+            }
+        }
+
+    // Hide the campaign modal
+        function hideCampaignModal() {
+            campaignModal.classList.add('hidden');
+        }
+
+    // Reset campaign modal to initial state
+        function resetCampaignModal() {
+            // Show step 1, hide others
+            campaignStep1.classList.remove('hidden');
+            campaignStep2.classList.add('hidden');
+            campaignStep3.classList.add('hidden');
+
+            // Reset step indicators
+            step2Circle.classList.remove('bg-blue-500');
+            step2Circle.classList.add('bg-gray-300');
+            step2Text.classList.remove('text-blue-500');
+            step2Text.classList.add('text-gray-400');
+
+            step3Circle.classList.remove('bg-blue-500');
+            step3Circle.classList.add('bg-gray-300');
+            step3Text.classList.remove('text-blue-500');
+            step3Text.classList.add('text-gray-400');
+
+            // Reset selected channel
+            activeChannel = null;
+            campaignChannels.forEach(channel => {
+                channel.classList.remove('!border-blue-500', 'shadow-md');
+            });
+            channelNextBtn.disabled = true;
+
+            // Reset selected template
+            activeTemplate = null;
+            campaignTemplates.forEach(template => {
+                template.classList.remove('selected');
+            });
+            templateNextBtn.disabled = true;
+
+            // Reset form fields
+            campaignName.value = '';
+            sendNow.checked = true;
+            sendLater.checked = false;
+            scheduleDateContainer.classList.add('hidden');
+
+            // Reset review data
+            reviewChannel.textContent = '-';
+            reviewTemplate.textContent = '-';
+            reviewMessagePreview.textContent = '';
+        }
+
+    // Select a channel
+        function selectChannel(e) {
+            const channel = e.currentTarget;
+            activeChannel = channel.dataset.channel;
+
+            // Update UI
+            campaignChannels.forEach(ch => {
+                ch.classList.remove('!border-blue-500', 'shadow-md');
+            });
+            channel.classList.add('!border-blue-500', 'shadow-md');
+
+            // Enable next button
+            channelNextBtn.disabled = false;
+        }
+
+    // Go to template selection step
+        function goToTemplateStep() {
+            // Hide step 1, show step 2
+            campaignStep1.classList.add('hidden');
+            campaignStep2.classList.remove('hidden');
+
+            // Update step indicators
+            step2Circle.classList.remove('bg-gray-300');
+            step2Circle.classList.add('bg-blue-500');
+            step2Text.classList.remove('text-gray-400');
+            step2Text.classList.add('text-blue-500');
+
+            // Show templates based on selected channel
+            smsTemplates.classList.add('hidden');
+            emailTemplates.classList.add('hidden');
+            whatsappTemplates.classList.add('hidden');
+
+            if (activeChannel === 'sms') {
+                smsTemplates.classList.remove('hidden');
+            } else if (activeChannel === 'email') {
+                emailTemplates.classList.remove('hidden');
+            } else if (activeChannel === 'whatsapp') {
+                whatsappTemplates.classList.remove('hidden');
+            }
+        }
+
+    // Go back to channel selection step
+        function backToChannelStep() {
+            // Hide step 2, show step 1
+            campaignStep2.classList.add('hidden');
+            campaignStep1.classList.remove('hidden');
+
+            // Update step indicators
+            step2Circle.classList.remove('bg-blue-500');
+            step2Circle.classList.add('bg-gray-300');
+            step2Text.classList.remove('text-blue-500');
+            step2Text.classList.add('text-gray-400');
+        }
+
+    // Select a template
+        function selectTemplate(e) {
+            const template = e.currentTarget;
+            activeTemplate = template.dataset.templateId;
+
+            // Update UI
+            campaignTemplates.forEach(t => {
+                t.classList.remove('selected');
+            });
+            template.classList.add('selected');
+
+            // Enable next button
+            templateNextBtn.disabled = false;
+        }
+
+    // Go to review step
+        function goToReviewStep() {
+            // Hide step 2, show step 3
+            campaignStep2.classList.add('hidden');
+            campaignStep3.classList.remove('hidden');
+
+            // Update step indicators
+            step3Circle.classList.remove('bg-gray-300');
+            step3Circle.classList.add('bg-blue-500');
+            step3Text.classList.remove('text-gray-400');
+            step3Text.classList.add('text-blue-500');
+
+            // Update review data
+            updateReviewData();
+        }
+
+    // Go back to template selection step
+        function backToTemplateStep() {
+            // Hide step 3, show step 2
+            campaignStep3.classList.add('hidden');
+            campaignStep2.classList.remove('hidden');
+
+            // Update step indicators
+            step3Circle.classList.remove('bg-blue-500');
+            step3Circle.classList.add('bg-gray-300');
+            step3Text.classList.remove('text-blue-500');
+            step3Text.classList.add('text-gray-400');
+        }
+
+    // Update review data
+        function updateReviewData() {
+            // Set channel name
+            let channelName = '';
+            if (activeChannel === 'sms') {
+                channelName = 'SMS';
+            } else if (activeChannel === 'email') {
+                channelName = 'Email';
+            } else if (activeChannel === 'whatsapp') {
+                channelName = 'WhatsApp';
+            }
+            reviewChannel.textContent = channelName;
+
+            // Set template name
+            const templateElement = document.querySelector(`.campaign-template[data-template-id="${activeTemplate}"]`);
+            const templateName = templateElement ? templateElement.querySelector('h5').textContent : '-';
+            reviewTemplate.textContent = templateName;
+
+            // Set message preview
+            const previewElement = templateElement ? templateElement.querySelector('.template-preview').cloneNode(true) : null;
+            reviewMessagePreview.innerHTML = '';
+            if (previewElement) {
+                // Replace variables with actual values from the first selected patient
+                const variablePlaceholders = previewElement.querySelectorAll('.variable-placeholder');
+                // Get the first selected patient for preview
+                let previewPatient = null;
+                if (selectedPatients.length > 0) {
+                    // Show only the first patient in preview
+                    previewPatient = patientsData.find(p => String(p.PatientNumber) === String(selectedPatients[0]));
+                }
+
+                variablePlaceholders.forEach(placeholder => {
+                    const variable = placeholder.textContent;
+                    let value = '[Variable]';
+                    if (previewPatient) {
+                        if (variable === '{{patient_name}}') {
+                            value = previewPatient.PNAME;
+                        }
+                        else if (variable === '{{expected_visitdate}}') {
+                            value = previewPatient.ExpectedVisitDate ? new Date(previewPatient.ExpectedVisitDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
+                        }
+                        else if (variable === '{{medication_name}}') {
+                            if (previewPatient.CONDITION) {
+                                const conditionToTests = {
+
+                                    // Group 1: CBC, Specific markers or imaging as needed (50 conditions)
+                                    "Acid-Base Imbalance": "CBC, Specific markers or imaging as needed",
+                                    "Allergic Reactions": "CBC, Specific markers or imaging as needed",
+                                    "Ankylosing Spondylitis": "CBC, Specific markers or imaging as needed",
+                                    "Antiphospholipid Syndrome": "CBC, Specific markers or imaging as needed",
+                                    "Aspergillosis": "CBC, Specific markers or imaging as needed",
+                                    "Bipolar Disorder": "CBC, Specific markers or imaging as needed",
+                                    "Bleeding Disorders": "CBC, Specific markers or imaging as needed",
+                                    "Blood Clotting Disorders": "CBC, Specific markers or imaging as needed",
+                                    "Blood Disorders": "CBC, Specific markers or imaging as needed",
+                                    "Calcium Imbalance": "CBC, Specific markers or imaging as needed",
+                                    "Celiac Disease": "CBC, Specific markers or imaging as needed",
+                                    "Chikungunya": "CBC, Specific markers or imaging as needed",
+                                    "Chlamydia": "CBC, Specific markers or imaging as needed",
+                                    "Cortisol Abnormality": "CBC, Specific markers or imaging as needed",
+                                    "Dengue": "CBC, Specific markers or imaging as needed",
+                                    "Depression": "CBC, Specific markers or imaging as needed",
+                                    "Diabetes": "CBC, Specific markers or imaging as needed",
+                                    "Diabetic Ketoacidosis": "CBC, Specific markers or imaging as needed",
+                                    "Drug Abuse": "CBC, Specific markers or imaging as needed",
+                                    "Electrolyte Imbalance": "CBC, Specific markers or imaging as needed",
+                                    "Epilepsy": "CBC, Specific markers or imaging as needed",
+                                    "Filariasis": "CBC, Specific markers or imaging as needed",
+                                    "Food": "CBC, Specific markers or imaging as needed",
+                                    "Food Intolerance": "CBC, Specific markers or imaging as needed",
+                                    "Gastric Ulcers": "CBC, Specific markers or imaging as needed",
+                                    "Gastrointestinal Bleeding": "CBC, Specific markers or imaging as needed",
+                                    "General Health Checkup": "CBC, Specific markers or imaging as needed",
+                                    "Gonorrhea": "CBC, Specific markers or imaging as needed",
+                                    "Gout": "CBC, Specific markers or imaging as needed",
+                                    "Hemophilia": "CBC, Specific markers or imaging as needed",
+                                    "Herpes": "CBC, Specific markers or imaging as needed",
+                                    "HIV": "CBC, Specific markers or imaging as needed",
+                                    "Hormonal Imbalance": "CBC, Specific markers or imaging as needed",
+                                    "Immune System Disorders": "CBC, Specific markers or imaging as needed",
+                                    "Inflammation": "CBC, Specific markers or imaging as needed",
+                                    "Inflammatory Bowel Disease (IBD)": "CBC, Specific markers or imaging as needed",
+                                    "Lupus": "CBC, Specific markers or imaging as needed",
+                                    "Malaria": "CBC, Specific markers or imaging as needed",
+                                    "Muscle Disorders": "CBC, Specific markers or imaging as needed",
+                                    "Organ Transplant": "CBC, Specific markers or imaging as needed",
+                                    "Ovarian Reserve": "CBC, Specific markers or imaging as needed",
+                                    "Pancreatitis": "CBC, Specific markers or imaging as needed",
+                                    "Pregnancy": "CBC, Specific markers or imaging as needed",
+                                    "Rheumatoid Arthritis": "CBC, Specific markers or imaging as needed",
+                                    "Sarcoidosis": "CBC, Specific markers or imaging as needed",
+                                    "Smoking": "CBC, Specific markers or imaging as needed",
+                                    "Syphilis": "CBC, Specific markers or imaging as needed",
+                                    "Toxoplasmosis": "CBC, Specific markers or imaging as needed",
+                                    "Tuberculosis": "CBC, Specific markers or imaging as needed",
+                                    "Typhoid": "CBC, Specific markers or imaging as needed",
+
+                                    // Group 2: CBC, CRP, Specific cultures or PCR (12 conditions)
+                                    "Allergic Reactions or Infections": "CBC, CRP, Specific cultures or PCR",
+                                    "Allergic Reactions or Parasitic Infections": "CBC, CRP, Specific cultures or PCR",
+                                    "Bacterial Infections": "CBC, CRP, Specific cultures or PCR",
+                                    "Chronic Infections or Inflammatory Conditions": "CBC, CRP, Specific cultures or PCR",
+                                    "Cytomegalovirus Infection": "CBC, CRP, Specific cultures or PCR",
+                                    "Fungal Infections": "CBC, CRP, Specific cultures or PCR",
+                                    "Infections": "CBC, CRP, Specific cultures or PCR",
+                                    "Infections or Inflammation": "CBC, CRP, Specific cultures or PCR",
+                                    "Parasitic Infections": "CBC, CRP, Specific cultures or PCR",
+                                    "Rubella Infection": "CBC, CRP, Specific cultures or PCR",
+                                    "Streptococcal Infections": "CBC, CRP, Specific cultures or PCR",
+                                    "Urinary Tract Infections": "CBC, CRP, Specific cultures or PCR",
+
+                                    // Group 3: Biopsy, Imaging (CT/MRI), Tumor markers (7 conditions)
+                                    "Breast Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                                    "Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                                    "Gastric Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                                    "Liver Cancer or Testicular Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                                    "Ovarian Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                                    "Pancreatic Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                                    "Prostate Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+
+                                    // Group 4: Liver function tests, Hepatitis panel (5 conditions)
+                                    "Autoimmune Hepatitis": "Liver function tests, Hepatitis panel",
+                                    "Hepatitis A": "Liver function tests, Hepatitis panel",
+                                    "Hepatitis B": "Liver function tests, Hepatitis panel",
+                                    "Hepatitis C": "Liver function tests, Hepatitis panel",
+                                    "Hepatitis E": "Liver function tests, Hepatitis panel",
+
+                                    // Group 5: CBC, Iron studies, Reticulocyte count (3 conditions)
+                                    "Anemia": "CBC, Iron studies, Reticulocyte count",
+                                    "Hemolytic Anemia": "CBC, Iron studies, Reticulocyte count",
+                                    "Sickle Cell Anemia": "CBC, Iron studies, Reticulocyte count",
+
+                                    // Group 6: ECG, Troponin, Echocardiogram, Lipid profile (3 conditions)
+                                    "Cardiovascular Disease": "ECG, Troponin, Echocardiogram, Lipid profile",
+                                    "Heart Attack": "ECG, Troponin, Echocardiogram, Lipid profile",
+                                    "Heart Failure": "ECG, Troponin, Echocardiogram, Lipid profile",
+
+                                    // Group 7: Renal panel, Urinalysis, Imaging (3 conditions)
+                                    "Kidney Disease": "Renal panel, Urinalysis, Imaging",
+                                    "Kidney Function": "Renal panel, Urinalysis, Imaging",
+                                    "Kidney Stones": "Renal panel, Urinalysis, Imaging",
+
+                                    // Group 8: TSH, Free T3, Free T4 (2 conditions)
+                                    "Hashimoto's Thyroiditis": "TSH, Free T3 examines the thyroid function, aiding in diagnosis and treatment planning.",
+                                    "Thyroid Disorders": "TSH, Free T3, Free T4",
+
+                                    // Group 9: ANA, ESR, CRP, Disease-specific antibodies (1 condition)
+                                    "Autoimmune Diseases": "ANA, ESR, CRP, Disease-specific antibodies",
+
+                                    // Group 10: RT-PCR, Rapid antigen test, CRP, D-dimer (1 condition)
+                                    "COVID-19": "RT-PCR, Rapid antigen test, CRP, D-dimer",
+
+                                    // Group 11: Folate level test (1 condition)
+                                    "Folate Deficiency": "Folate level test",
+
+                                    // Group 12: Iron level test (1 condition)
+                                    "Iron Deficiency": "Iron level test",
+
+                                    // Group 13: LFTs, Imaging, Viral hepatitis screening (1 condition)
+                                    "Liver Disorders": "LFTs, Imaging, Viral hepatitis screening",
+
+                                    // Group 14: General health panel, CBC, LFT, KFT, Lipid profile (1 condition)
+                                    "NORMAL": "General health panel, CBC, LFT, KFT, Lipid profile",
+
+                                    // Group 15: B12 level test (1 condition)
+                                    "Vitamin B12 Deficiency": "B12 level test",
+
+                                    // Group 16: D level test (1 condition)
+                                    "Vitamin D Deficiency": "D level test",
+
+                                    // Group 17: E level test (1 condition)
+                                    "Vitamin E Deficiency": "E level test"
+                                };
+                                
+                               
+                                if (previewPatient.CONDITION) {
+                                    const matchedTests = new Set();
+                                    const conditions = previewPatient.CONDITION
+                                        .split(",")
+                                        .map(c => c.trim().toLowerCase());
+
+                                    for (const [condition, tests] of Object.entries(conditionToTests)) {
+                                        if (conditions.includes(condition.toLowerCase())) {
+                                            tests.split(",").forEach(test => matchedTests.add(test.trim()));
+                                        }
+                                    }
+                                    if (matchedTests.size > 0) {
+                                        value = Array.from(matchedTests).map(t => "🧪" + t).join(" ");
+                                    }
+                                }
+                            }
+                        
+                            else {
+                                value = 'Prescribed medication';
+                            }
+                        }
+                        else if (variable === '{{org}}') {
+                            value = previewPatient.OrgName; 
+                        }
+                        else if (variable === '{{months_since_visit}}') {
+                            if (previewPatient.LastVisitDate) {
+                                const now = new Date();
+                                const lastVisit = new Date(previewPatient.LastVisitDate);
+                                const months = (now.getFullYear() - lastVisit.getFullYear()) * 12 +
+                                    (now.getMonth() - lastVisit.getMonth());
+                                value = months.toString();
+                            }
+                            else {
+                                value = '0';
+                            }
+                        }
+                        else if (variable === '{{health_condition}}') {
+                            if (previewPatient.CONDITION) {
+                                value = previewPatient.CONDITION.toLowerCase();
+                            }
+                            else {
+                                value = 'health condition';
+                            }
+                        }
+                    }
+                    console.log(value)
+                    placeholder.textContent = value;
+                });
+
+                reviewMessagePreview.appendChild(previewElement);
+            }
+            // Set default campaign name
+            if (!campaignName.value) {
+                const date = new Date().toLocaleDateString().replace(/\//g, '-');
+                campaignName.value = `${channelName} Campaign - ${date}`;
+            }
+      }
+
+    // Toggle schedule options
+        function toggleScheduleOptions() {
+            if (sendLater.checked) {
+                scheduleDateContainer.classList.remove('hidden');
+            } else {
+                scheduleDateContainer.classList.add('hidden');
+            }
+        }
+    
+    // Generate Excel-compatible HTML data for the campaign
+        function generateCampaignExcelHTML() {
+               // Define headers
+               const headers = [
+                   'Patient Number',
+                   'PNAME',
+                   'Mobile Number',
+                   'EMail',
+                   'Channel',
+                   'Template Type',
+                   'Campaign Name',
+                   'Scheduled Delivery',
+                   'Template Used',
+                   'Delivered Content'
+               ];
+
+               // Start HTML table
+               let htmlContent = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="UTF-8">
+            <!--[if gte mso 9]><xml>
+                <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                        <x:ExcelWorksheet>
+                            <x:Name>Campaign</x:Name>
+                            <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                        </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+            </xml><![endif]-->
+        </head>
+        <body>
+            <table border="1">
+                <thead>
+                    <tr style="font-weight: bold;">
+                        ${headers.map(header => `<th>${header}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+               // Add data rows
+               selectedPatients.forEach(patientId => {
+                   const patient = patientsData.find(p => String(p.PatientNumber) === String(patientId));
+                   if (!patient) return;
+
+                   const conditionToTests = {
+
+                       // Group 1: CBC, Specific markers or imaging as needed (50 conditions)
+                       "Acid-Base Imbalance": "CBC, Specific markers or imaging as needed",
+                       "Allergic Reactions": "CBC, Specific markers or imaging as needed",
+                       "Ankylosing Spondylitis": "CBC, Specific markers or imaging as needed",
+                       "Antiphospholipid Syndrome": "CBC, Specific markers or imaging as needed",
+                       "Aspergillosis": "CBC, Specific markers or imaging as needed",
+                       "Bipolar Disorder": "CBC, Specific markers or imaging as needed",
+                       "Bleeding Disorders": "CBC, Specific markers or imaging as needed",
+                       "Blood Clotting Disorders": "CBC, Specific markers or imaging as needed",
+                       "Blood Disorders": "CBC, Specific markers or imaging as needed",
+                       "Calcium Imbalance": "CBC, Specific markers or imaging as needed",
+                       "Celiac Disease": "CBC, Specific markers or imaging as needed",
+                       "Chikungunya": "CBC, Specific markers or imaging as needed",
+                       "Chlamydia": "CBC, Specific markers or imaging as needed",
+                       "Cortisol Abnormality": "CBC, Specific markers or imaging as needed",
+                       "Dengue": "CBC, Specific markers or imaging as needed",
+                       "Depression": "CBC, Specific markers or imaging as needed",
+                       "Diabetes": "CBC, Specific markers or imaging as needed",
+                       "Diabetic Ketoacidosis": "CBC, Specific markers or imaging as needed",
+                       "Drug Abuse": "CBC, Specific markers or imaging as needed",
+                       "Electrolyte Imbalance": "CBC, Specific markers or imaging as needed",
+                       "Epilepsy": "CBC, Specific markers or imaging as needed",
+                       "Filariasis": "CBC, Specific markers or imaging as needed",
+                       "Food": "CBC, Specific markers or imaging as needed",
+                       "Food Intolerance": "CBC, Specific markers or imaging as needed",
+                       "Gastric Ulcers": "CBC, Specific markers or imaging as needed",
+                       "Gastrointestinal Bleeding": "CBC, Specific markers or imaging as needed",
+                       "General Health Checkup": "CBC, Specific markers or imaging as needed",
+                       "Gonorrhea": "CBC, Specific markers or imaging as needed",
+                       "Gout": "CBC, Specific markers or imaging as needed",
+                       "Hemophilia": "CBC, Specific markers or imaging as needed",
+                       "Herpes": "CBC, Specific markers or imaging as needed",
+                       "HIV": "CBC, Specific markers or imaging as needed",
+                       "Hormonal Imbalance": "CBC, Specific markers or imaging as needed",
+                       "Immune System Disorders": "CBC, Specific markers or imaging as needed",
+                       "Inflammation": "CBC, Specific markers or imaging as needed",
+                       "Inflammatory Bowel Disease (IBD)": "CBC, Specific markers or imaging as needed",
+                       "Lupus": "CBC, Specific markers or imaging as needed",
+                       "Malaria": "CBC, Specific markers or imaging as needed",
+                       "Muscle Disorders": "CBC, Specific markers or imaging as needed",
+                       "Organ Transplant": "CBC, Specific markers or imaging as needed",
+                       "Ovarian Reserve": "CBC, Specific markers or imaging as needed",
+                       "Pancreatitis": "CBC, Specific markers or imaging as needed",
+                       "Pregnancy": "CBC, Specific markers or imaging as needed",
+                       "Rheumatoid Arthritis": "CBC, Specific markers or imaging as needed",
+                       "Sarcoidosis": "CBC, Specific markers or imaging as needed",
+                       "Smoking": "CBC, Specific markers or imaging as needed",
+                       "Syphilis": "CBC, Specific markers or imaging as needed",
+                       "Toxoplasmosis": "CBC, Specific markers or imaging as needed",
+                       "Tuberculosis": "CBC, Specific markers or imaging as needed",
+                       "Typhoid": "CBC, Specific markers or imaging as needed",
+
+                       // Group 2: CBC, CRP, Specific cultures or PCR (12 conditions)
+                       "Allergic Reactions or Infections": "CBC, CRP, Specific cultures or PCR",
+                       "Allergic Reactions or Parasitic Infections": "CBC, CRP, Specific cultures or PCR",
+                       "Bacterial Infections": "CBC, CRP, Specific cultures or PCR",
+                       "Chronic Infections or Inflammatory Conditions": "CBC, CRP, Specific cultures or PCR",
+                       "Cytomegalovirus Infection": "CBC, CRP, Specific cultures or PCR",
+                       "Fungal Infections": "CBC, CRP, Specific cultures or PCR",
+                       "Infections": "CBC, CRP, Specific cultures or PCR",
+                       "Infections or Inflammation": "CBC, CRP, Specific cultures or PCR",
+                       "Parasitic Infections": "CBC, CRP, Specific cultures or PCR",
+                       "Rubella Infection": "CBC, CRP, Specific cultures or PCR",
+                       "Streptococcal Infections": "CBC, CRP, Specific cultures or PCR",
+                       "Urinary Tract Infections": "CBC, CRP, Specific cultures or PCR",
+
+                       // Group 3: Biopsy, Imaging (CT/MRI), Tumor markers (7 conditions)
+                       "Breast Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                       "Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                       "Gastric Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                       "Liver Cancer or Testicular Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                       "Ovarian Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                       "Pancreatic Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+                       "Prostate Cancer": "Biopsy, Imaging (CT/MRI), Tumor markers",
+
+                       // Group 4: Liver function tests, Hepatitis panel (5 conditions)
+                       "Autoimmune Hepatitis": "Liver function tests, Hepatitis panel",
+                       "Hepatitis A": "Liver function tests, Hepatitis panel",
+                       "Hepatitis B": "Liver function tests, Hepatitis panel",
+                       "Hepatitis C": "Liver function tests, Hepatitis panel",
+                       "Hepatitis E": "Liver function tests, Hepatitis panel",
+
+                       // Group 5: CBC, Iron studies, Reticulocyte count (3 conditions)
+                       "Anemia": "CBC, Iron studies, Reticulocyte count",
+                       "Hemolytic Anemia": "CBC, Iron studies, Reticulocyte count",
+                       "Sickle Cell Anemia": "CBC, Iron studies, Reticulocyte count",
+
+                       // Group 6: ECG, Troponin, Echocardiogram, Lipid profile (3 conditions)
+                       "Cardiovascular Disease": "ECG, Troponin, Echocardiogram, Lipid profile",
+                       "Heart Attack": "ECG, Troponin, Echocardiogram, Lipid profile",
+                       "Heart Failure": "ECG, Troponin, Echocardiogram, Lipid profile",
+
+                       // Group 7: Renal panel, Urinalysis, Imaging (3 conditions)
+                       "Kidney Disease": "Renal panel, Urinalysis, Imaging",
+                       "Kidney Function": "Renal panel, Urinalysis, Imaging",
+                       "Kidney Stones": "Renal panel, Urinalysis, Imaging",
+
+                       // Group 8: TSH, Free T3, Free T4 (2 conditions)
+                       "Hashimoto's Thyroiditis": "TSH, Free T3 examines the thyroid function, aiding in diagnosis and treatment planning.",
+                       "Thyroid Disorders": "TSH, Free T3, Free T4",
+
+                       // Group 9: ANA, ESR, CRP, Disease-specific antibodies (1 condition)
+                       "Autoimmune Diseases": "ANA, ESR, CRP, Disease-specific antibodies",
+
+                       // Group 10: RT-PCR, Rapid antigen test, CRP, D-dimer (1 condition)
+                       "COVID-19": "RT-PCR, Rapid antigen test, CRP, D-dimer",
+
+                       // Group 11: Folate level test (1 condition)
+                       "Folate Deficiency": "Folate level test",
+
+                       // Group 12: Iron level test (1 condition)
+                       "Iron Deficiency": "Iron level test",
+
+                       // Group 13: LFTs, Imaging, Viral hepatitis screening (1 condition)
+                       "Liver Disorders": "LFTs, Imaging, Viral hepatitis screening",
+
+                       // Group 14: General health panel, CBC, LFT, KFT, Lipid profile (1 condition)
+                       "NORMAL": "General health panel, CBC, LFT, KFT, Lipid profile",
+
+                       // Group 15: B12 level test (1 condition)
+                       "Vitamin B12 Deficiency": "B12 level test",
+
+                       // Group 16: D level test (1 condition)
+                       "Vitamin D Deficiency": "D level test",
+
+                       // Group 17: E level test (1 condition)
+                       "Vitamin E Deficiency": "E level test"
+                   };
+
+                  
+                   let Recomendation = "No condition recorded";
+
+                   if (patient.CONDITION) {
+                       const matchedTests = new Set();
+                       const conditions = patient.CONDITION
+                           .split(",")
+                           .map(c => c.trim().toLowerCase());
+
+                       for (const [condition, tests] of Object.entries(conditionToTests)) {
+                           if (conditions.includes(condition.toLowerCase())) {
+                               tests.split(",").forEach(test => matchedTests.add(test.trim()));
+                           }
+                       }
+
+                       if (matchedTests.size > 0) {
+                           Recomendation = Array.from(matchedTests).map(t => "🧪" + t).join(" ");
+                       }
+                   }
+
+
+                   // Determine channel
+                   const channelName = activeChannel === 'sms' ? 'SMS' :
+                       activeChannel === 'email' ? 'Email' :
+                           activeChannel === 'whatsapp' ? 'WhatsApp' : '-';
+
+                   // Get template name
+                   const templateElement = document.querySelector(`.campaign-template[data-template-id="${activeTemplate}"]`);
+                   const templateName = templateElement ? templateElement.querySelector('h5').textContent : '-';
+                   const templateUsed = templateElement ? templateElement.querySelector('.template-preview').textContent : '-';
+                   const exp_VisitDate = patient.ExpectedVisitDate ? new Date(patient.ExpectedVisitDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
+
+                   let monthsCount = '0';
+                   if (patient.LastVisitDate) {
+                       const now = new Date();
+                       const lastVisit = new Date(patient.LastVisitDate);
+                       const months = (now.getFullYear() - lastVisit.getFullYear()) * 12 +
+                           (now.getMonth() - lastVisit.getMonth());
+                       monthsCount = months.toString();
+                   }
+                   else {
+                       monthsCount = '0';
+                   }
+                   
+                   const patientInfo = {
+                       patient_name: patient.PNAME,
+                       medication_name: Recomendation,
+                       health_condition: patient.CONDITION,
+                       months_since_visit: monthsCount,
+                       expected_visitdate: exp_VisitDate,
+                       org: patient.OrgName
+                   };
+
+                   const renderedMessage = templateUsed.replace(/{{\s*(\w+)\s*}}/g, function (match, key) {
+                       return (patientInfo.hasOwnProperty(key) ? patientInfo[key] : match);
+                   });
+
+
+                   // Determine delivery time
+                   const delivery = sendNow.checked ? 'Immediate' : scheduleDateTime.value.replace('T', ' ');
+
+                   // Prepare row data
+                   const rowData = [
+                       patient.PatientNumber || '',
+                       patient.PNAME || '',
+                       patient.MobileNumber || '',
+                       patient.EMail || '',
+                       channelName,
+                       templateName,
+                       campaignName.value || 'Untitled Campaign',
+                       delivery,
+                       templateUsed,
+                       renderedMessage
+                   ];
+
+                   // Add row to HTML
+                   htmlContent += `
+            <tr>
+                ${rowData.map(value => `<td>${String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>`).join('')}
+            </tr>
+        `;
+               });
+
+               // Close HTML table
+               htmlContent += `
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+
+               return htmlContent;
+           }
+
+    // Download Excel file
+        function downloadExcel(htmlContent, fileName) {
+               const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+               const url = URL.createObjectURL(blob);
+               const link = document.createElement('a');
+               link.setAttribute('href', url);
+               link.setAttribute('download', `${fileName}.xls`);
+               link.style.display = 'none';
+               document.body.appendChild(link);
+               link.click();
+               document.body.removeChild(link);
+               URL.revokeObjectURL(url);
+
+            // 👉 Call server upload
+            uploadExcelToServer(htmlContent, fileName);
+           }
+
+           function uploadExcelToServer(htmlContent, fileName) {
+               const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+               const formData = new FormData();
+               formData.append("file", blob, `${fileName}.xls`);
+
+               fetch("http://localhost:8002/save-excel", {
+                   method: "POST",
+                   body: formData
+               })
+                   .then(res => {
+                       if (res.ok) {
+                           console.log("Excel uploaded to server.");
+                       } else {
+                           console.error("Failed to upload Excel to server.");
+                       }
+                   })
+                   .catch(err => {
+                       console.error("Upload error:", err);
+                   });
+           }
+
+
+    // Send campaign
+        function sendCampaign() {
+            // Show success modal
+            campaignModal.classList.add('hidden');
+
+            // Set success modal data
+            successCampaignName.textContent = campaignName.value || 'Untitled Campaign';
+            successRecipients.textContent = `${selectedPatients.length} patients`;
+            successDelivery.textContent = sendNow.checked ? 'Immediate' : `Scheduled for ${scheduleDateTime.value.replace('T', ' ')}`;
+
+            // Show success modal
+            successModal.classList.remove('hidden');
+
+
+            // Generate Excel-compatible HTML data
+            const excelData = generateCampaignExcelHTML();
+
+            // Trigger Excel file download
+            downloadExcel(excelData, campaignName.value || 'Untitled Campaign');
+			
+            // Clear selection after success
+            clearSelection();
+        }
+
+    // Show loading
+        function showLoading() {
+                loadingIndicator.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                emptyState.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+            }
+
+    // Hide loading
+        function hideLoading() {
+                loadingIndicator.classList.add('hidden');
+            }
+
+    // Show error
+        function showError(message) {
+                errorText.textContent = message;
+                errorMessage.classList.remove('hidden');
+            }
+
+    // Hide error
+        function hideError() {
+                errorMessage.classList.add('hidden');
+            }
+
+    // Hide success modal
+        function hideSuccessModal() {
+            successModal.classList.add('hidden');
+        }
+
+    // Show empty state
+        function showEmptyState() {
+                emptyState.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+            }
+
+    // Hide empty state
+        function hideEmptyState() {
+                emptyState.classList.add('hidden');
+    }
+
+    // Show results
+        function showResults() {
+                resultsSection.classList.remove('hidden');
+    }
+});        
+ </script>
+</body>
+</html>

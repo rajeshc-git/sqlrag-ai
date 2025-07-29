@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRMAI Healthcare Chat Dashboard</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Markdown parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Sanitize HTML to prevent XSS -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+    <style>
+        :root {
+            /* Healthcare-focused color palette */
+            --primary-blue: 210 100% 50%;
+            --primary-blue-dark: 210 100% 45%;
+            --secondary-teal: 180 100% 35%;
+            --accent-green: 142 71% 45%;
+            --warning-amber: 43 96% 56%;
+            --error-red: 0 84% 60%;
+            --chat-table-bg: #f8f9fa;
+            
+            /* Neutral colors */
+            --background-primary: 210 17% 98%;
+            --background-secondary: 210 11% 96%;
+            --surface-white: 0 0% 100%;
+            --surface-elevated: 210 11% 98%;
+            
+            /* Text colors */
+            --text-primary: 210 22% 15%;
+            --text-secondary: 210 9% 31%;
+            --text-tertiary: 210 9% 45%;
+            --text-inverse: 0 0% 98%;
+            
+            /* Border and divider colors */
+            --border-light: 210 11% 91%;
+            --border-medium: 210 9% 83%;
+            --border-strong: 210 9% 71%;
+            
+            /* Chat-specific colors */
+            --chat-user-bg: 210 100% 50%;
+            --chat-assistant-bg: 180 30% 92%;
+            --chat-system-bg: 142 71% 45%;
+            
+            /* Semantic colors */
+            --success: 142 71% 45%;
+            --warning: 43 96% 56%;
+            --error: 0 84% 60%;
+            --info: 210 100% 50%;
+            
+            /* Shadow values */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+            --transition-slow: 350ms ease;
+        }
+
+        /* Dark theme variables */
+        [data-theme="dark"] {
+            --background-primary: 210 22% 11%;
+            --background-secondary: 210 22% 15%;
+            --surface-white: 210 22% 15%;
+            --surface-elevated: 210 22% 19%;
+            
+            --text-primary: 210 11% 91%;
+            --text-secondary: 210 9% 71%;
+            --text-tertiary: 210 9% 55%;
+            --text-inverse: 210 22% 15%;
+            
+            --border-light: 210 22% 23%;
+            --border-medium: 210 22% 31%;
+            --border-strong: 210 22% 39%;
+            
+            --chat-assistant-bg: 210 22% 19%;
+            --chat-table-bg: #2d2d4a;
+        }
+
+        /* Base styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: hsl(var(--background-primary));
+            color: hsl(var(--text-primary));
+            margin: 0;
+            padding: 0;
+            transition: all var(--transition-normal);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Layout Grid */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, hsl(var(--primary-blue)), hsl(var(--primary-blue-dark)));
+            color: hsl(var(--text-inverse));
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        /* Main Content Area */
+        .dashboard-main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+            gap: 0;
+            overflow: hidden;
+            background: hsl(var(--background-primary));
+        }
+
+        /* Chat Container */
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            background: hsl(var(--surface-white));
+            margin: 1rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-section.maximized {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: 0;
+            border-radius: 0;
+            z-index: 1000;
+        }
+
+        .section-header {
+            background: hsl(var(--surface-elevated));
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid hsl(var(--border-light));
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0;
+            color: hsl(var(--text-primary));
+        }
+
+        .section-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: hsl(var(--background-secondary));
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            animation: messageSlideIn var(--transition-normal);
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .message.user .message-avatar {
+            background: hsl(var(--primary-blue));
+            color: hsl(var(--text-inverse));
+        }
+
+        .message.assistant .message-avatar {
+            background: hsl(var(--accent-green));
+            color: hsl(var(--text-inverse));
+        }
+
+        .message.system .message-avatar {
+            background: hsl(var(--secondary-teal));
+            color: hsl(var(--text-inverse));
+        }
+
+        
+
+        .message-bubble {
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: var(--shadow-sm);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .message.user .message-bubble {
+            background-color: #e9e9e980;
+            border-bottom-right-radius: 8px;
+        }
+
+        .message.assistant .message-bubble {
+            background: hsl(var(--chat-assistant-bg));
+            color: hsl(var(--text-primary));
+            border-bottom-left-radius: 8px;
+            border: 1px solid hsl(var(--border-light));
+        }
+
+        .message.system .message-bubble {
+            background: hsl(var(--chat-system-bg) / 0.1);
+            color: hsl(var(--text-primary));
+            border: 1px solid hsl(var(--accent-green) / 0.3);
+            border-radius: 12px;
+        }
+
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: hsl(var(--text-tertiary));
+            margin-top: 0.5rem;
+            padding: 0 0.25rem;
+        }
+
+        .message.user .message-timestamp {
+            text-align: right;
+        }
+
+        /* Chat Input */
+        .chat-input-container {
+            padding: 1.5rem;
+            background: hsl(var(--surface-white));
+            border-top: 1px solid hsl(var(--border-light));
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+            background: hsl(var(--background-secondary));
+            border: 2px solid hsl(var(--border-light));
+            border-radius: 24px;
+            transition: all var(--transition-fast);
+        }
+
+        .chat-input-wrapper:focus-within {
+            border-color: hsl(var(--primary-blue));
+            box-shadow: 0 0 0 3px hsl(var(--primary-blue) / 0.1);
+        }
+
+        #promptInput {
+            width: 100%;
+            padding: 1rem 4rem 1rem 1.25rem;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: hsl(var(--text-primary));
+            min-height: 48px;
+            max-height: 120px;
+            font-family: inherit;
+        }
+
+        #promptInput::placeholder {
+            color: hsl(var(--text-tertiary));
+        }
+
+        .chat-input-actions {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Data Table Section */
+        .data-section {
+            background: hsl(var(--surface-white));
+            margin: 0 1rem 1rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+
+        .data-section.maximized {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: 0;
+            border-radius: 0;
+            z-index: 1000;
+        }
+
+        .table-controls {
+            padding: 1rem 1.5rem;
+            background: hsl(var(--surface-elevated));
+            border-bottom: 1px solid hsl(var(--border-light));
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.5rem 1rem;
+            border: 1px solid hsl(var(--border-medium));
+            border-radius: 8px;
+            background: hsl(var(--surface-white));
+            color: hsl(var(--text-primary));
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: hsl(var(--primary-blue));
+            box-shadow: 0 0 0 2px hsl(var(--primary-blue) / 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        /* Virtual Table Container */
+        .virtual-table-container {
+            height: calc(100vh - 270px);
+            overflow: auto;
+            background: hsl(var(--surface-white));
+        }
+
+        .data-section.maximized .virtual-table-container {
+            height: calc(100vh - 210px);
+        }
+
+        /* Campaign Modal */
+        .campaign-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .campaign-modal.hidden {
+            display: none;
+        }
+
+        .campaign-modal-content {
+            background: hsl(var(--surface-white));
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campaign-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid hsl(var(--border-light));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .campaign-modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .campaign-modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid hsl(var(--border-light));
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            background: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: hsl(var(--primary-blue));
+            color: hsl(var(--text-inverse));
+            border-color: hsl(var(--primary-blue));
+        }
+
+        .btn-primary:hover {
+            background: hsl(var(--primary-blue-dark));
+            border-color: hsl(var(--primary-blue-dark));
+        }
+
+        .btn-secondary {
+            background: hsl(var(--surface-elevated));
+            color: hsl(var(--text-primary));
+            border-color: hsl(var(--border-medium));
+        }
+
+        .btn-secondary:hover {
+            background: hsl(var(--border-light));
+        }
+
+        .btn-success {
+            background: hsl(var(--accent-green));
+            color: hsl(var(--text-inverse));
+            border-color: hsl(var(--accent-green));
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: hsl(var(--primary-blue));
+            border-color: hsl(var(--primary-blue));
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--primary-blue));
+            color: hsl(var(--text-inverse));
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+
+        .btn-icon-sm {
+            padding: 0.375rem;
+            width: 32px;
+            height: 32px;
+            justify-content: center;
+        }
+
+        /* Form Controls */
+        .form-control {
+            padding: 0.5rem 1rem;
+            border: 1px solid hsl(var(--border-medium));
+            border-radius: 8px;
+            background: hsl(var(--surface-white));
+            color: hsl(var(--text-primary));
+            font-size: 0.9rem;
+            transition: all var(--transition-fast);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: hsl(var(--primary-blue));
+            box-shadow: 0 0 0 2px hsl(var(--primary-blue) / 0.1);
+        }
+
+        .form-select {
+            padding: 0.5rem 2rem 0.5rem 1rem;
+            border: 1px solid hsl(var(--border-medium));
+            border-radius: 8px;
+            background: hsl(var(--surface-white)) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e") no-repeat right 0.75rem center/16px 12px;
+            color: hsl(var(--text-primary));
+            font-size: 0.9rem;
+            cursor: pointer;
+            appearance: none;
+        }
+
+        /* Table Styles */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid hsl(var(--border-light));
+            vertical-align: middle;
+        }
+
+        .table th {
+            background: hsl(var(--surface-elevated));
+            font-weight: 600;
+            color: hsl(var(--text-secondary));
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .table tbody tr:hover {
+            background: hsl(var(--surface-elevated) / 0.5);
+        }
+
+        .table-striped tbody tr:nth-child(even) {
+            background: hsl(var(--surface-elevated) / 0.3);
+        }
+
+        /* Status Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-primary {
+            background: hsl(var(--primary-blue) / 0.1);
+            color: hsl(var(--primary-blue));
+        }
+
+        .badge-success {
+            background: hsl(var(--accent-green) / 0.1);
+            color: hsl(var(--accent-green));
+        }
+
+        .badge-warning {
+            background: hsl(var(--warning-amber) / 0.1);
+            color: hsl(var(--warning-amber));
+        }
+
+        .badge-error {
+            background: hsl(var(--error-red) / 0.1);
+            color: hsl(var(--error-red));
+        }
+
+        /* Loading States */
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: hsl(var(--text-tertiary));
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid hsl(var(--border-light));
+            border-top: 2px solid hsl(var(--primary-blue));
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-muted { color: hsl(var(--text-tertiary)); }
+        .text-small { font-size: 0.8rem; }
+        .fw-bold { font-weight: 600; }
+        .d-none { display: none; }
+        .d-block { display: block; }
+        .d-flex { display: flex; }
+        .align-items-center { align-items: center; }
+        .justify-content-between { justify-content: space-between; }
+        .gap-1 { gap: 0.5rem; }
+        .gap-2 { gap: 1rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .p-2 { padding: 1rem; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-main {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            
+            .chat-section,
+            .data-section {
+                margin: 0.5rem;
+            }
+            
+            .header-controls {
+                gap: 0.25rem;
+            }
+            
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-input {
+                min-width: auto;
+            }
+        }
+    </style>
+    <style>
+.message-bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    background-color: var(--chat-table-bg);
+
+}
+
+
+
+.message-bubble th {
+    background: #2d2d4a !important;
+    font-weight: 600 !important;
+    color: #e0e0e0 !important;
+}
+.message-bubble th, .message-bubble td {
+    border: 1px solid #4a4a7c !important;
+    padding: 0.75rem !important;
+    text-align: left !important;
+
+}
+
+.message-bubble strong {
+    font-weight: 600 !important;
+}
+
+.message-bubble h3, 
+.message-bubble h2 {
+    font-size: 1.1rem !important;
+    margin: 0.5rem 0 0.75rem !important;
+    font-weight: 600 !important;
+}
+
+.message-bubble em {
+    color: #6c757d !important;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  gap: 4px;
+}
+
+.typing-indicator span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background-color: hsl(var(--text-tertiary));
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+	</style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Chat Section -->
+            <section class="chat-section" id="chatSection">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-comments me-2"></i>
+                        Healthcare AI Assistant
+                    </h2>
+                    <div class="section-controls">
+					    <button class="btn btn-icon-sm btn-outline" id="helpBtn" title="Help">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+                        <button class="btn btn-icon-sm btn-secondary" id="clearChat" title="Clear Chat">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="btn btn-icon-sm btn-secondary" id="minimizeChat" title="Minimize">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="btn btn-icon-sm btn-secondary" id="maximizeChat" title="Maximize">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message system">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                <strong>Welcome to CRMAI Healthcare Assistant!</strong><br>
+                                I'm here to help you analyze patient data, generate insights, and answer questions about healthcare metrics. Ask me anything about patient demographics, visit patterns, conditions, or request specific data queries.
+                            </div>
+                            <div class="message-timestamp">System • Just now</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                       <textarea id="promptInput" placeholder="Ask me about patient data, demographics, or any queries..." rows="1"></textarea>
+                        <div class="chat-input-actions">
+                          <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                          <button class="btn btn-icon-sm btn-secondary" id="attachImageBtn" title="Attach Image"><i class="fas fa-paperclip"></i></button>
+                          <button class="btn btn-icon-sm btn-primary" id="sendMessage" title="Send Message"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+					<div id="imagePreviewContainer" class="w-full p-2 hidden">
+                      <div class="text-sm text-gray-600 mb-1">🖼️ Attached Image:</div>
+                      <img id="imagePreview" src="" alt="Preview" class="max-h-32 rounded shadow border" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Table Section -->
+            <section class="data-section" id="dataSection">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-table me-2"></i>
+                        Patient Data
+                        <span class="badge badge-primary" id="recordCount">0 records</span>
+                    </h2>
+                    <div class="section-controls">
+					    <div class="flex items-center hidden">
+                           <div id="selectedPatientsPreview" class="flex items-center text-gray-600"></div>
+                        </div>
+                        <button class="btn btn-sm btn-success" id="createCampaign" title="Create Campaign">
+                            <i class="fas fa-bullhorn"></i>Create Campaign
+                        </button>
+                        <button class="btn btn-icon-sm btn-secondary" id="refreshData" title="Refresh Data">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+						<button class="btn btn-icon-sm btn-secondary" id="themeToggle" title="Toggle Dark Mode">
+                             <i class="fas fa-moon"></i>
+                        </button>
+                        <button class="btn btn-icon-sm btn-secondary" id="minimizeData" title="Minimize">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="btn btn-icon-sm btn-secondary" id="maximizeData" title="Maximize">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-controls">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search patients...">
+                    <div class="filter-group">
+                        <label for="sexFilter" class="text-small fw-bold">Sex:</label>
+                        <select id="sexFilter" class="form-select">
+                            <option value="">All</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="locationFilter" class="text-small fw-bold">Location:</label>
+                        <select id="locationFilter" class="form-select">
+                            <option value="">All Locations</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="conditionFilter" class="text-small fw-bold">Condition:</label>
+                        <select id="conditionFilter" class="form-select">
+                            <option value="">All Conditions</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="virtual-table-container" id="virtualTableContainer">
+                    <table class="table table-striped text-nowrap" id="patientTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll"></th>
+                                <th>Patient Number</th>
+                                <th>Name</th>
+                                <th>Organization</th>
+                                <th>Location</th>
+                                <th>Email</th>
+                                <th>Sex</th>
+                                <th>Age</th>
+                                <th>Mobile</th>
+                                <th>Condition</th>
+                                <th>Total Visits</th>
+                                <th>Total Amount</th>
+                                <th>Average Ticket</th>
+                                <th>Last Visit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientTableBody">
+                            <!-- Table data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+				<div class="p-2 text-center" id="paginationControls"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Campaign Creation Modal -->
+    <div id="campaignModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-6 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Create Campaign</h3>
+                <button id="closeCampaignModalBtn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- Step Indicator -->
+                <div class="flex items-center mb-8">
+                    <div class="flex items-center">
+                        <div class="bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center text-white">1</div>
+                        <span class="ml-2 font-medium text-blue-500">Channel</span>
+                    </div>
+                    <div class="h-1 w-12 bg-gray-300 mx-2"></div>
+                    <div class="flex items-center">
+                        <div id="step2Circle" class="bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center text-white">2</div>
+                        <span id="step2Text" class="ml-2 font-medium text-gray-400">Template</span>
+                    </div>
+                    <div class="h-1 w-12 bg-gray-300 mx-2"></div>
+                    <div class="flex items-center">
+                        <div id="step3Circle" class="bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center text-white">3</div>
+                        <span id="step3Text" class="ml-2 font-medium text-gray-400">Review</span>
+                    </div>
+                </div>
+
+                <!-- Campaign Steps Content -->
+                <div id="campaignStep1" class="fade-in">
+                    <h4 class="font-medium text-gray-700 mb-4">Select Communication Channel</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="channel-option border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors" data-channel="sms">
+                            <div class="text-center">
+                                <i class="fas fa-sms text-2xl text-blue-500 mb-2"></i>
+                                <h5 class="font-medium">SMS</h5>
+                                <p class="text-sm text-gray-600">Send text messages to patient mobile numbers</p>
+                            </div>
+                        </div>
+                        <div class="channel-option border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors" data-channel="email">
+                            <div class="text-center">
+                                <i class="fas fa-envelope text-2xl text-green-500 mb-2"></i>
+                                <h5 class="font-medium">Email</h5>
+                                <p class="text-sm text-gray-600">Send emails to patient email addresses</p>
+                            </div>
+                        </div>
+                        <div class="channel-option border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors" data-channel="whatsapp">
+                            <div class="text-center">
+                                <i class="fab fa-whatsapp text-2xl text-green-600 mb-2"></i>
+                                <h5 class="font-medium">WhatsApp</h5>
+                                <p class="text-sm text-gray-600">Send WhatsApp messages to patients</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button id="channelNextBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Next <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="campaignStep2" class="hidden fade-in">
+                    <h4 class="font-medium text-gray-700 mb-4">Select Message Template</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="space-y-4">
+                            <h5 class="font-medium text-gray-600">Available Templates</h5>
+                            <div id="templatesList" class="space-y-3 max-h-96 overflow-y-auto">
+                                <!-- Templates will be populated here -->
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h5 class="font-medium text-gray-600">Preview</h5>
+                            <div id="templatePreview" class="border rounded-lg p-4 bg-gray-50 min-h-32">
+                                <p class="text-gray-500 text-sm">Select a template to see preview</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between">
+                        <button id="templateBackBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">
+                            <i class="fas fa-arrow-left mr-2"></i> Back
+                        </button>
+                        <button id="templateNextBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Next <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="campaignStep3" class="hidden fade-in">
+                    <h4 class="font-medium text-gray-700 mb-4">Review & Send</h4>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="font-medium text-gray-600">Channel:</span>
+                                <span id="reviewChannel" class="ml-2"></span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Recipients:</span>
+                                <span id="reviewRecipients" class="ml-2"></span>
+                            </div>
+                            <div class="col-span-2">
+                                <span class="font-medium text-gray-600">Template:</span>
+                                <span id="reviewTemplate" class="ml-2"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <h5 class="font-medium text-gray-600 mb-2">Campaign Name</h5>
+                        <input type="text" id="campaignName" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter campaign name">
+                    </div>
+                    <div class="flex justify-between">
+                        <button id="reviewBackBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">
+                            <i class="fas fa-arrow-left mr-2"></i> Back
+                        </button>
+                        <button id="launchCampaignBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
+                            <i class="fas fa-paper-plane mr-2"></i> Launch Campaign
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-6 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Help & Documentation</h3>
+                <button id="closeHelpModalBtn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- Help Content -->
+                <div class="mb-8">
+                    <h4 class="font-semibold text-lg mb-4">Getting Started</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <h5 class="font-medium mb-2">1. Querying Patient Data</h5>
+                            <p class="text-gray-600">Type natural language queries in the chat to retrieve patient information. For example:</p>
+                            <ul class="list-disc list-inside mt-2 text-gray-600">
+                                <li>"Show patients with diabetes"</li>
+                                <li>"Find female patients under 40"</li>
+                                <li>"List patients with high blood pressure"</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-medium mb-2">2. Working with Results</h5>
+                            <p class="text-gray-600">Once data is loaded, you can:</p>
+                            <ul class="list-disc list-inside mt-2 text-gray-600">
+                                <li>Search and filter patients using the search box</li>
+                                <li>Select multiple patients using checkboxes</li>
+                                <li>Export data to CSV format</li>
+                                <li>Create marketing campaigns for selected patients</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-medium mb-2">3. Creating Campaigns</h5>
+                            <p class="text-gray-600">Select patients and click the "Create Campaign" button to:</p>
+                            <ul class="list-disc list-inside mt-2 text-gray-600">
+                                <li>Choose communication channel (SMS, Email, WhatsApp)</li>
+                                <li>Select message templates</li>
+                                <li>Review and launch campaigns</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h4 class="font-semibold text-lg mb-4">Sample Queries</h4>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h5 class="font-medium mb-2">Basic Queries</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• "Show all patients"</li>
+                                    <li>• "List female patients"</li>
+                                    <li>• "Find patients from Bangalore"</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 class="font-medium mb-2">Advanced Queries</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• "Patients with multiple visits"</li>
+                                    <li>• "High-value patients by amount"</li>
+                                    <li>• "Patients due for follow-up"</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+		let attachedImageBase64 = null;
+        let currentPatientData = [];
+        let filteredPatientData = [];
+        let selectedPatients = new Set();
+        let isDarkMode = false;
+        let selectedChannel = '';
+        let selectedTemplate = '';
+		let currentPage = 1;
+        let rowsPerPage = 1000;
+        // Campaign templates
+        const campaignTemplates = {
+            sms: [
+                {
+                    id: 'sms_1',
+                    name: 'Health Checkup Reminder',
+                    content: 'Hi {PNAME}, it\'s time for your health checkup! Visit us at {OrgName}. Call {MobileNumber} to book.'
+                },
+                {
+                    id: 'sms_2', 
+                    name: 'Appointment Follow-up',
+                    content: 'Dear {PNAME}, your last visit was on {LastVisitDate}. Schedule your next appointment today!'
+                }
+            ],
+            email: [
+                {
+                    id: 'email_1',
+                    name: 'Wellness Newsletter',
+                    content: 'Dear {PNAME}, here\'s your personalized health update based on your condition: {CONDITION}'
+                },
+                {
+                    id: 'email_2',
+                    name: 'Test Results Available', 
+                    content: 'Hello {PNAME}, your test results are now available. Please visit {OrgName} to collect them.'
+                }
+            ],
+            whatsapp: [
+                {
+                    id: 'whatsapp_1',
+                    name: 'Quick Health Check',
+                    content: 'Hi {PNAME}! 👋 Time for your health screening. Book now at {OrgName}!'
+                },
+                {
+                    id: 'whatsapp_2',
+                    name: 'Medication Reminder',
+                    content: 'Hello {PNAME}, don\'t forget your medication for {CONDITION}. Stay healthy! 💊'
+                }
+            ]
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            initializeTable();
+            setupVirtualScrolling();
+        });
+
+        function initializeEventListeners() {
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // Chat functionality
+            document.getElementById('sendMessage').addEventListener('click', sendMessage);
+            document.getElementById('promptInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            document.getElementById('clearChat').addEventListener('click', clearChat);
+
+            // Section controls
+            document.getElementById('minimizeChat').addEventListener('click', () => toggleSection('chatSection', 'minimize'));
+            document.getElementById('maximizeChat').addEventListener('click', () => toggleSection('chatSection', 'maximize'));
+            document.getElementById('minimizeData').addEventListener('click', () => toggleSection('dataSection', 'minimize'));
+            document.getElementById('maximizeData').addEventListener('click', () => toggleSection('dataSection', 'maximize'));
+
+            // Table controls
+            document.getElementById('searchInput').addEventListener('input', filterTable);
+            document.getElementById('sexFilter').addEventListener('change', filterTable);
+            document.getElementById('locationFilter').addEventListener('change', filterTable);
+            document.getElementById('conditionFilter').addEventListener('change', filterTable);
+            document.getElementById('selectAll').addEventListener('change', toggleSelectAll);
+            document.getElementById('refreshData').addEventListener('click', refreshData);
+
+            // Campaign modal
+            document.getElementById('createCampaign').addEventListener('click', showCampaignModal);
+            document.getElementById('closeCampaignModalBtn').addEventListener('click', hideCampaignModal);
+            document.getElementById('helpBtn').addEventListener('click', toggleHelpModal);
+            document.getElementById('closeHelpModalBtn').addEventListener('click', toggleHelpModal);
+            
+            // Campaign modal navigation
+            document.getElementById('channelNextBtn').addEventListener('click', goToTemplateStep);
+            document.getElementById('templateBackBtn').addEventListener('click', backToChannelStep);
+            document.getElementById('templateNextBtn').addEventListener('click', goToReviewStep);
+            document.getElementById('reviewBackBtn').addEventListener('click', backToTemplateStep);
+            document.getElementById('launchCampaignBtn').addEventListener('click', launchCampaign);
+            
+            // Channel selection
+            document.querySelectorAll('.channel-option').forEach(option => {
+                option.addEventListener('click', selectChannel);
+            });
+
+            // Auto-resize textarea
+            document.getElementById('promptInput').addEventListener('input', autoResizeTextarea);
+			
+			
+
+ document.getElementById('attachImageBtn').addEventListener('click', () => {
+        document.getElementById('imageInput').click();
+    });
+
+    document.getElementById('imageInput').addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            addMessage('system', "❌ Please upload a valid image file.");
+            return;
+        }
+
+        if (file.size > 15 * 1024 * 1024) {
+            addMessage('system', "⚠️ Image too large. Please compress or resize.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            attachedImageBase64 = e.target.result.split(',')[1];
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    const dropArea = document.getElementById('promptInput');
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropArea.classList.add('ring-2', 'ring-blue-500');
+        });
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('ring-2', 'ring-blue-500');
+        });
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files[0];
+        if (!file || !file.type.startsWith("image/")) return;
+
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+            attachedImageBase64 = ev.target.result.split(',')[1];
+            document.getElementById('imagePreview').src = ev.target.result;
+            document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
+
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            const themeIcon = document.querySelector('#themeToggle i');
+            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('promptInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function toggleSection(sectionId, action) {
+            const section = document.getElementById(sectionId);
+            section.classList.remove('minimized', 'maximized');
+            if (action !== 'normal') {
+                section.classList.add(action + 'd');
+            }
+        }
+
+   async function sendMessage() {
+    const input = document.getElementById('promptInput');
+    const message = input.value.trim();
+
+    if (!message && !attachedImageBase64) return;
+
+    if (message && attachedImageBase64) {
+    const safeMessage = DOMPurify.sanitize(message);
+    const fullContent = `${safeMessage}<br><img src="data:image/png;base64,${attachedImageBase64}" class="max-w-xs mt-2 rounded shadow" alt="Attached Image">`;
+    addMessage('user', fullContent);
+} else if (attachedImageBase64) {
+    const imageHtml = `<img src="data:image/png;base64,${attachedImageBase64}" class="max-w-xs mt-2 rounded shadow" alt="Attached Image">`;
+    addMessage('user', imageHtml);
+} else if (message) {
+    const safeMessage = DOMPurify.sanitize(message);
+    addMessage('user', safeMessage);
+}
+
+    input.value = '';
+    autoResizeTextarea();
+
+    const typingId = addMessage('assistant', '', true);
+
+    try {
+    let response;
+    let data;
+    document.getElementById('imageInput').value = '';
+    document.getElementById('imagePreview').src = '';
+    document.getElementById('imagePreviewContainer').classList.add('hidden');
+
+    const bubble = document.querySelector(`#${typingId} .message-bubble`);
+    const spinner = document.querySelector(`#${typingId} .spinner`);
+    if (spinner) spinner.remove();
+
+    if (attachedImageBase64) {
+        // 🔍 Vision Mode
+        response = await fetch('http://192.168.10.90:8001/vision-proxy/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                prompt: message || "You are a senior medical expert. Analyze this image and generate a medically accurate diagnostic table with anatomy, findings, diagnosis, and clinical advice.",
+                images: [attachedImageBase64]
+            })
+        });
+
+        data = await response.json();
+
+    } else {
+        // 🧠 Text Mode — Stream or SQL
+        response = await fetch('http://192.168.10.90:8001/query-patients/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: message })
+        });
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/event-stream")) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = '';
+            let fullContent = '';
+            bubble.innerText = '';
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                buffer += chunk;
+
+                const lines = buffer.split('\n');
+                buffer = lines.pop(); // Save leftover
+
+                for (const line of lines) {
+                    if (line.trim().startsWith('data:')) {
+                        try {
+                            const json = JSON.parse(line.replace(/^data:\s*/, ''));
+                            const token = json.message?.content || '';
+                            fullContent += token;
+                            bubble.innerText = fullContent;
+                        } catch (e) {
+                            console.warn("Stream parse error:", e);
+                        }
+                    }
+                }
+            }
+
+            // Final render as Markdown
+            if (fullContent.trim()) {
+                bubble.innerHTML = DOMPurify.sanitize(marked.parse(fullContent));
+            }
+
+            return; // ✅ For streaming LLM Response
+        } else {
+            // Regular JSON response (SQL)
+            data = await response.json();
+        }
+    }
+
+    // ✅ Handle Vision and SQL JSON results data
+    document.getElementById(typingId)?.remove();
+
+    if (data.no_data === true) {
+        currentPatientData = [];
+        filteredPatientData = [];
+        populateFilters();
+        renderTable();
+        updateRecordCount();
+        addMessage('assistant', "⚠️ No data available for your query.");
+    } else if (data.result && data.result.length > 0) {
+        currentPatientData = data.result;
+        filteredPatientData = [...currentPatientData];
+        populateFilters();
+        renderTable();
+        updateRecordCount();
+        addMessage('assistant', `✅ Found ${data.result_count || data.result.length} patient records. Data displayed in the table.`);
+    } else {
+        const reply = (typeof data.llm_response === 'string' ? data.llm_response : data.response) || "No response.";
+        addMessage('assistant', reply.replace(/\n/g, '<br>'));
+    }
+
+} catch (error) {
+    console.error('Error fetching response:', error);
+    document.getElementById(typingId)?.remove();
+    addMessage('assistant', '❌ Failed to get response.');
+}
+	
+    // ✅ Cleanup
+    attachedImageBase64 = null;
+}
+
+
+		
+       function cleanFakeMarkdown(input) {
+    if (typeof input !== 'string') return '';
+    return input
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/?strong>/gi, '**')
+        .replace(/<\/?em>/gi, '*')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&');
+}
+
+		
+        function addMessage(type, content, isTyping = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.id = messageId;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            
+            if (type === 'user') {
+                avatar.innerHTML = '<i class="fas fa-user"></i>';
+            } else if (type === 'assistant') {
+                avatar.innerHTML = '<i class="fas fa-robot"></i>';
+            } else {
+                avatar.innerHTML = '<i class="fas fa-info-circle"></i>';
+            }
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            
+            if (isTyping) {
+                bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            } else {
+                const markdown = cleanFakeMarkdown(content);        // 👈 Clean it first
+                const rawHtml = marked.parse(markdown);             // Parse raw Markdown
+                const safeHtml = DOMPurify.sanitize(rawHtml);       // Sanitize
+                bubble.innerHTML = safeHtml;        
+            }
+
+            const timestamp = document.createElement('div');
+            timestamp.className = 'message-timestamp';
+            timestamp.textContent = `${type === 'user' ? localStorage.getItem('crm_username') : 'Assistant'} • ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+
+            messageContent.appendChild(bubble);
+            messageContent.appendChild(timestamp);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            return messageId;
+        }
+
+        function clearChat() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const systemMessage = messagesContainer.querySelector('.message.system');
+            messagesContainer.innerHTML = '';
+			attachedImageBase64 = null;
+            document.getElementById('imageInput').value = '';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            if (systemMessage) {
+                messagesContainer.appendChild(systemMessage);
+            }
+        }
+        function populateFilters() {
+            // Populate location filter
+            const locations = [...new Set(currentPatientData.map(p => p.Location).filter(Boolean))];
+            const locationFilter = document.getElementById('locationFilter');
+            locationFilter.innerHTML = '<option value="">All Locations</option>';
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                locationFilter.appendChild(option);
+            });
+
+            // Populate condition filter
+            const conditions = [...new Set(
+                currentPatientData
+                    .map(p => p.CONDITION)
+                    .filter(Boolean)
+                    .flatMap(c => c.split(',').map(condition => condition.trim()))
+            )];
+            const conditionFilter = document.getElementById('conditionFilter');
+            conditionFilter.innerHTML = '<option value="">All Conditions</option>';
+            conditions.forEach(condition => {
+                const option = document.createElement('option');
+                option.value = condition;
+                option.textContent = condition;
+                conditionFilter.appendChild(option);
+            });
+        }
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const sexFilter = document.getElementById('sexFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+            const conditionFilter = document.getElementById('conditionFilter').value;
+
+            filteredPatientData = currentPatientData.filter(patient => {
+                const matchesSearch = !searchTerm || 
+                    patient.PNAME?.toLowerCase().includes(searchTerm) ||
+                    patient.PatientNumber?.toString().includes(searchTerm) ||
+                    patient.MobileNumber?.includes(searchTerm) ||
+                    patient.EMail?.toLowerCase().includes(searchTerm);
+
+                const matchesSex = !sexFilter || patient.SEX === sexFilter;
+                const matchesLocation = !locationFilter || patient.Location === locationFilter;
+                const matchesCondition = !conditionFilter || 
+                    (patient.CONDITION && patient.CONDITION.includes(conditionFilter));
+
+                return matchesSearch && matchesSex && matchesLocation && matchesCondition;
+            });
+
+            renderTable();
+            updateRecordCount();
+        }
+
+        function renderTable() {
+    const tbody = document.getElementById('patientTableBody');
+    tbody.innerHTML = '';
+
+    if (filteredPatientData.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="15" class="text-center text-muted">No patient data available</td>';
+        tbody.appendChild(row);
+        return;
+    }
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const paginatedData = filteredPatientData.slice(start, end);
+
+    paginatedData.forEach(patient => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="checkbox" class="patient-checkbox" data-patient-id="${patient.PatientNumber}"></td>
+            <td>${patient.PatientNumber || ''}</td>
+            <td>${patient.PNAME || ''}</td>
+            <td>${patient.OrgName || ''}</td>
+            <td>${patient.Location || ''}</td>
+            <td>${patient.EMail || ''}</td>
+            <td><span class="badge ${patient.SEX === 'M' ? 'badge-primary' : 'badge-success'}">${patient.SEX || ''}</span></td>
+            <td>${patient.Age || ''}</td>
+            <td>${patient.MobileNumber || ''}</td>
+            <td><span class="text-small">${patient.CONDITION || 'N/A'}</span></td>
+            <td>${patient.TotalVisits || 0}</td>
+            <td>₹${patient.TotalAmount ? parseFloat(patient.TotalAmount).toLocaleString() : '0'}</td>
+            <td>₹${patient.AverageTicket ? parseFloat(patient.AverageTicket).toFixed(2) : '0'}</td>
+            <td>${patient.LastVisitDate ? new Date(patient.LastVisitDate).toLocaleDateString() : 'N/A'}</td>
+            <td>
+                <button class="btn btn-sm btn-outline" onclick="viewPatientDetails('${patient.PatientNumber}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        `;
+
+        row.querySelector('.patient-checkbox').addEventListener('change', function () {
+            const pid = this.dataset.patientId;
+            this.checked ? selectedPatients.add(pid) : selectedPatients.delete(pid);
+            updateSelectedPatientsPreview();
+        });
+
+        tbody.appendChild(row);
+    });
+
+    updatePaginationControls();
+}
+
+
+        function updatePaginationControls() {
+    const totalPages = Math.ceil(filteredPatientData.length / rowsPerPage);
+    const container = document.getElementById('paginationControls');
+    container.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = `btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline'} mx-1`;
+        btn.addEventListener('click', () => {
+            currentPage = i;
+            renderTable();
+        });
+        container.appendChild(btn);
+    }
+}
+
+
+        function updateRecordCount() {
+            const recordCount = document.getElementById('recordCount');
+            recordCount.textContent = `${filteredPatientData.length} records`;
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.patient-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+                const patientId = checkbox.dataset.patientId;
+                if (selectAll.checked) {
+                    selectedPatients.add(patientId);
+                } else {
+                    selectedPatients.delete(patientId);
+                }
+            });
+            
+            
+        }
+
+        function updateSelectedPatientsPreview() {
+            const preview = document.getElementById('selectedPatientsPreview');
+            if (selectedPatients.size === 0) {
+                preview.innerHTML = '<span class="text-muted">No patients selected</span>';
+            } else {
+                preview.innerHTML = `<span class="mr-2">${selectedPatients.size} patients selected</span>`;
+            }
+        }
+
+        function viewPatientDetails(patientNumber) {
+            const patient = currentPatientData.find(p => p.PatientNumber === patientNumber);
+            if (patient) {
+                alert(`Patient Details:\n\nName: ${patient.PNAME}\nAge: ${patient.Age}\nCondition: ${patient.CONDITION || 'N/A'}\nTotal Visits: ${patient.TotalVisits}\nTotal Amount: ₹${patient.TotalAmount}`);
+            }
+        }
+
+        function refreshData() {
+            // Refresh will be triggered when user sends a new message
+            addMessage('system', 'Please send a message to refresh patient data.');
+        }
+
+        function initializeTable() {
+            // Initialize empty table - data will be loaded when user sends a message
+            currentPatientData = [];
+            filteredPatientData = [];
+            renderTable();
+            updateRecordCount();
+        }
+
+        function setupVirtualScrolling() {
+            // Virtual scrolling implementation would go here for large datasets
+            // For now, we'll use regular table rendering
+        }
+
+        // Help Modal Functions
+        function toggleHelpModal() {
+            const helpModal = document.getElementById('helpModal');
+            helpModal.classList.toggle('hidden');
+        }
+
+        // Campaign Modal Functions
+        function showCampaignModal() {
+            if (selectedPatients.size === 0) {
+                addMessage('system', 'Please select at least one patient to create a campaign.');
+                return;
+            }
+            
+            resetCampaignModal();
+            document.getElementById('campaignModal').classList.remove('hidden');
+            document.getElementById('reviewRecipients').textContent = `${selectedPatients.size} patients`;
+        }
+
+        function hideCampaignModal() {
+            document.getElementById('campaignModal').classList.add('hidden');
+            resetCampaignModal();
+        }
+
+        function resetCampaignModal() {
+            // Show step 1, hide others
+            document.getElementById('campaignStep1').classList.remove('hidden');
+            document.getElementById('campaignStep2').classList.add('hidden');
+            document.getElementById('campaignStep3').classList.add('hidden');
+            
+            // Reset step indicators
+            const step2Circle = document.getElementById('step2Circle');
+            const step2Text = document.getElementById('step2Text');
+            const step3Circle = document.getElementById('step3Circle');
+            const step3Text = document.getElementById('step3Text');
+            
+            step2Circle.classList.remove('bg-blue-500');
+            step2Circle.classList.add('bg-gray-300');
+            step2Text.classList.remove('text-blue-500');
+            step2Text.classList.add('text-gray-400');
+            
+            step3Circle.classList.remove('bg-blue-500');
+            step3Circle.classList.add('bg-gray-300');
+            step3Text.classList.remove('text-blue-500');
+            step3Text.classList.add('text-gray-400');
+            
+            // Reset selections
+            selectedChannel = '';
+            selectedTemplate = '';
+            document.getElementById('channelNextBtn').disabled = true;
+            document.getElementById('templateNextBtn').disabled = true;
+            
+            // Clear channel selections
+            document.querySelectorAll('.channel-option').forEach(option => {
+                option.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+        }
+
+        function selectChannel(event) {
+            const channelOption = event.currentTarget;
+            selectedChannel = channelOption.dataset.channel;
+            
+            // Remove previous selection
+            document.querySelectorAll('.channel-option').forEach(option => {
+                option.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            
+            // Add selection styling
+            channelOption.classList.add('border-blue-500', 'bg-blue-50');
+            
+            // Enable next button
+            document.getElementById('channelNextBtn').disabled = false;
+        }
+
+        function goToTemplateStep() {
+            if (!selectedChannel) return;
+            
+            document.getElementById('campaignStep1').classList.add('hidden');
+            document.getElementById('campaignStep2').classList.remove('hidden');
+            
+            // Update step indicator
+            const step2Circle = document.getElementById('step2Circle');
+            const step2Text = document.getElementById('step2Text');
+            step2Circle.classList.remove('bg-gray-300');
+            step2Circle.classList.add('bg-blue-500');
+            step2Text.classList.remove('text-gray-400');
+            step2Text.classList.add('text-blue-500');
+            
+            // Populate templates
+            populateTemplates();
+        }
+
+        function populateTemplates() {
+            const templatesList = document.getElementById('templatesList');
+            templatesList.innerHTML = '';
+            
+            const templates = campaignTemplates[selectedChannel] || [];
+            
+            templates.forEach(template => {
+                const templateDiv = document.createElement('div');
+                templateDiv.className = 'template-option border border-gray-300 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition-colors';
+                templateDiv.dataset.templateId = template.id;
+                templateDiv.innerHTML = `
+                    <h6 class="font-medium mb-1">${template.name}</h6>
+                    <p class="text-sm text-gray-600">${template.content.substring(0, 100)}${template.content.length > 100 ? '...' : ''}</p>
+                `;
+                
+                templateDiv.addEventListener('click', () => selectTemplate(template));
+                templatesList.appendChild(templateDiv);
+            });
+        }
+
+        function selectTemplate(template) {
+            selectedTemplate = template;
+            
+            // Remove previous selection
+            document.querySelectorAll('.template-option').forEach(option => {
+                option.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            
+            // Add selection styling
+            const templateOption = document.querySelector(`[data-template-id="${template.id}"]`);
+            templateOption.classList.add('border-blue-500', 'bg-blue-50');
+            
+            // Update preview
+            const preview = document.getElementById('templatePreview');
+            preview.innerHTML = `
+                <h6 class="font-medium mb-2">${template.name}</h6>
+                <p class="text-sm text-gray-700">${template.content}</p>
+            `;
+            
+            // Enable next button
+            document.getElementById('templateNextBtn').disabled = false;
+        }
+
+        function backToChannelStep() {
+            document.getElementById('campaignStep2').classList.add('hidden');
+            document.getElementById('campaignStep1').classList.remove('hidden');
+            
+            // Update step indicator
+            const step2Circle = document.getElementById('step2Circle');
+            const step2Text = document.getElementById('step2Text');
+            step2Circle.classList.remove('bg-blue-500');
+            step2Circle.classList.add('bg-gray-300');
+            step2Text.classList.remove('text-blue-500');
+            step2Text.classList.add('text-gray-400');
+        }
+
+        function goToReviewStep() {
+            if (!selectedTemplate) return;
+            
+            document.getElementById('campaignStep2').classList.add('hidden');
+            document.getElementById('campaignStep3').classList.remove('hidden');
+            
+            // Update step indicator
+            const step3Circle = document.getElementById('step3Circle');
+            const step3Text = document.getElementById('step3Text');
+            step3Circle.classList.remove('bg-gray-300');
+            step3Circle.classList.add('bg-blue-500');
+            step3Text.classList.remove('text-gray-400');
+            step3Text.classList.add('text-blue-500');
+            
+            // Update review information
+            document.getElementById('reviewChannel').textContent = selectedChannel.toUpperCase();
+            document.getElementById('reviewTemplate').textContent = selectedTemplate.name;
+        }
+
+        function backToTemplateStep() {
+            document.getElementById('campaignStep3').classList.add('hidden');
+            document.getElementById('campaignStep2').classList.remove('hidden');
+            
+            // Update step indicator
+            const step3Circle = document.getElementById('step3Circle');
+            const step3Text = document.getElementById('step3Text');
+            step3Circle.classList.remove('bg-blue-500');
+            step3Circle.classList.add('bg-gray-300');
+            step3Text.classList.remove('text-blue-500');
+            step3Text.classList.add('text-gray-400');
+        }
+
+        function launchCampaign() {
+            const campaignName = document.getElementById('campaignName').value;
+            
+            if (!campaignName) {
+                alert('Please enter a campaign name');
+                return;
+            }
+            
+            // Simulate campaign launch
+            addMessage('system', `Campaign "${campaignName}" launched successfully to ${selectedPatients.size} patients via ${selectedChannel.toUpperCase()}.`);
+            
+            // Close modal and reset
+            hideCampaignModal();
+            
+            // Clear selection
+            selectedPatients.clear();
+            updateSelectionCount();
+            document.querySelectorAll('#patientTable input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+        }
+
+        // Campaign modal functions
+        function openCampaignModal() {
+            if (selectedPatients.size === 0) {
+                alert('Please select at least one patient to create a campaign.');
+                return;
+            }
+            document.getElementById('campaignModal').classList.remove('hidden');
+        }
+
+        function closeCampaignModal() {
+            document.getElementById('campaignModal').classList.add('hidden');
+            document.getElementById('campaignForm').reset();
+        }
+
+        function saveCampaign() {
+            const form = document.getElementById('campaignForm');
+            const formData = new FormData(form);
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const campaignData = {
+                name: formData.get('campaignName'),
+                description: formData.get('campaignDescription'),
+                type: formData.get('campaignType'),
+                template: formData.get('campaignTemplate'),
+                selectedPatients: Array.from(selectedPatients)
+            };
+
+            console.log('Creating campaign:', campaignData);
+            
+            // Here you would send the campaign data to your backend
+            alert(`Campaign "${campaignData.name}" created successfully for ${selectedPatients.size} patients!`);
+            
+            closeCampaignModal();
+            selectedPatients.clear();
+            updateSelectedPatientsPreview();
+            document.getElementById('selectAll').checked = false;
+            document.querySelectorAll('.patient-checkbox').forEach(cb => cb.checked = false);
+        }
+		
+	  // Fetch user data
+      async function loadUserData() {
+          const username = localStorage.getItem('crm_username');
+          if (!username) {
+              window.location.href = '/';
+              return;
+          }
+      }
+	  
+	  // Load data on page load
+      loadUserData();
+	  
+    </script>
+</body>
+</html>

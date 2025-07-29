@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Blueshift</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .sidebar-active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0) 100%);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .pulse {
+            position: relative;
+        }
+        
+        .pulse::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        
+        .bg-pattern {
+            background-color: #f8fafc;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-pattern min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div id="sidebar" class="glass-morphism w-72 space-y-8 py-8 px-4 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-all duration-300 ease-in-out z-30 border-r border-blue-100">
+            <div class="flex items-center space-x-3 px-2">
+                <div class="w-10 h-10 rounded-lg gradient-bg flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <span class="text-2xl font-bold gradient-text">Blueshift</span>
+            </div>
+            
+            <div class="border-b border-gray-200 opacity-70"></div>
+            
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center px-4 py-3 text-blue-700 rounded-lg sidebar-active font-medium">
+                    <i data-feather="home" class="w-5 h-5 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="campaign_history.html" target="_blank" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors font-medium">
+                    <i data-feather="activity" class="w-5 h-5 mr-3"></i>
+                    Campaign History
+                </a>
+                <a href="campaign_bulk_history.html" target="_blank" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors font-medium">
+                    <i data-feather="archive" class="w-5 h-5 mr-3"></i>
+                    Bulk History
+                </a>
+				<a href="smartreport/index.html" target="_blank" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors font-medium">
+                    <i data-feather="layers" class="w-5 h-5 mr-3"></i>
+                    Smart Report
+                </a>
+            </nav>
+            
+            <div class="mt-auto pt-8">
+                <div class="bg-blue-50 rounded-xl p-4">
+                    <h4 class="text-sm font-semibold text-blue-800 mb-2">Need help?</h4>
+                    <p class="text-xs text-blue-600 mb-3">Contact our support team for assistance.</p>
+                    <a href="#" class="text-xs font-medium text-blue-700 hover:text-blue-800 flex items-center">
+                        <i data-feather="help-circle" class="w-3 h-3 mr-1"></i>
+                        View Support Options
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="glass-morphism sticky top-0 z-20">
+                <div class="max-w-full px-6 py-3 flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <button id="menuBtn" class="md:hidden text-gray-600 hover:text-blue-600 focus:outline-none transition-colors">
+                            <i data-feather="menu" class="w-6 h-6"></i>
+                        </button>
+                        <h1 class="text-xl font-semibold hidden sm:block text-gray-800">Dashboard</h1>
+                    </div>
+                    
+                    <div class="flex items-center space-x-5">
+                        <div class="relative">
+                            <button class="rounded-full p-1 text-gray-500 hover:bg-gray-100 transition-colors">
+                                <i data-feather="bell" class="w-5 h-5"></i>
+                            </button>
+                            <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm font-medium text-gray-700">Welcome, <span id="fullname" class="text-blue-600 font-semibold">User</span></span>
+                            <button id="logoutBtn" class="flex items-center text-blue-600 hover:text-blue-800 transition-colors text-sm font-medium">
+                                <i data-feather="log-out" class="w-4 h-4 mr-1"></i>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <div class="max-w-7xl mx-auto mb-8">
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                        <!-- Profile Card -->
+                        <div class="glass-morphism rounded-2xl card-shadow overflow-hidden xl:col-span-4 hover-lift">
+                            <div class="relative">
+                                <div class="h-20 gradient-bg"></div>
+                                <div class="absolute -bottom-10 left-6">
+                                    <div class="w-20 h-20 rounded-xl gradient-bg shadow-lg flex items-center justify-center text-white text-2xl font-bold border-4 border-white">
+                                        <span id="avatarInitials">U</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="pt-14 pb-6 px-6">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Profile Information</h3>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                                            <i data-feather="user" class="w-4 h-4 text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-500 block">Username</span>
+                                            <span id="username" class="text-sm font-medium text-gray-800">N/A</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                                            <i data-feather="mail" class="w-4 h-4 text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-500 block">Email</span>
+                                            <span id="email" class="text-sm font-medium text-gray-800">N/A</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                                            <i data-feather="phone" class="w-4 h-4 text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-500 block">Phone</span>
+                                            <span id="mobileno" class="text-sm font-medium text-gray-800">N/A</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                                            <i data-feather="briefcase" class="w-4 h-4 text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-500 block">Role</span>
+                                            <span id="role" class="text-sm font-medium text-gray-800">N/A</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                                            <i data-feather="check-circle" class="w-4 h-4 text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-500 block">Status</span>
+                                            <span id="status" class="text-sm font-medium text-gray-800">N/A</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Module Cards -->
+                        <div class="xl:col-span-8">
+                            <div class="mb-6 flex items-center justify-between">
+                                <h2 class="text-2xl font-bold text-gray-800">Your Modules</h2>
+                                <span class="text-sm font-medium text-blue-600">Available modules</span>
+                            </div>
+                            
+                            <div id="moduleCards" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Cards rendered dynamically -->
+                                <div class="animate-pulse rounded-xl bg-gray-100 p-6 h-32"></div>
+                                <div class="animate-pulse rounded-xl bg-gray-100 p-6 h-32"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+        });
+        
+        const API_URL = 'http://192.168.10.90:8002';
+        const fullnameEl = document.getElementById('fullname');
+        const avatarInitials = document.getElementById('avatarInitials');
+        const usernameEl = document.getElementById('username');
+        const emailEl = document.getElementById('email');
+        const mobilenoEl = document.getElementById('mobileno');
+        const roleEl = document.getElementById('role');
+        const statusEl = document.getElementById('status');
+        const moduleCards = document.getElementById('moduleCards');
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Fetch user data
+        async function loadUserData() {
+			const username = localStorage.getItem('crm_username');
+            if (!username) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+
+                const users = await response.json();
+                const user = users.find(u => u.username === username);
+                if (!user) {
+                    throw new Error('User not found');
+                }
+
+                // Update profile
+                fullnameEl.textContent = user.fullname || 'User';
+                avatarInitials.textContent = user.fullname ? user.fullname.charAt(0).toUpperCase() : 'U';
+                usernameEl.textContent = user.username || 'N/A';
+                emailEl.textContent = user.email || 'N/A';
+                mobilenoEl.textContent = user.mobileno || 'N/A';
+                roleEl.textContent = user.role || 'N/A';
+                statusEl.textContent = user.status || 'N/A';
+
+                // Render module cards
+                const modules = user.modules ? user.modules.split(',').map(m => m.trim()) : [];
+                const cardTemplates = {
+                    campaign: `
+                    <a href="campaign.html" class="block no-underline">
+                        <div class="glass-morphism rounded-xl p-6 hover-lift overflow-hidden relative card-shadow">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-lg gradient-bg flex items-center justify-center shadow-md mr-3">
+                                    <i data-feather="zap" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800">AI Campaign</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Manage and track your marketing campaigns efficiently.</p>
+                            <div class="flex items-center text-blue-600 text-sm font-medium">
+                                <span>Open module</span>
+                                <i data-feather="arrow-right" class="w-4 h-4 ml-1"></i>
+                            </div>
+                        </div>
+                    </a>
+					<a href="CampaignNew.html" target="_blank" class="block no-underline">
+                        <div class="glass-morphism rounded-xl p-6 hover-lift overflow-hidden relative card-shadow">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 flex items-center justify-center shadow-md mr-3">
+                                    <i data-feather="zap" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800">AI Assistant</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Talk to AI assistant & run a campaigns efforlessly.</p>
+                            <div class="flex items-center text-teal-600 text-sm font-medium">
+                                <span>Open module</span>
+                                <i data-feather="arrow-right" class="w-4 h-4 ml-1"></i>
+                            </div>
+                        </div>
+                    </a>
+					<a href="manual_campaign.html" target="_blank" class="block no-underline">
+                        <div class="glass-morphism rounded-xl p-6 hover-lift overflow-hidden relative card-shadow">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-violet-500 to-violet-600 flex items-center justify-center shadow-md mr-3">
+                                    <i data-feather="target" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800">Manual Campaign</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Manage and track your marketing campaigns efficiently.</p>
+                            <div class="flex items-center text-violet-600 text-sm font-medium">
+                                <span>Open module</span>
+                                <i data-feather="arrow-right" class="w-4 h-4 ml-1"></i>
+                            </div>
+                        </div>
+                    </a>
+                    `,
+                    callcenter: `
+                    <a href="call_center.html" target="_blank" class="block no-underline">
+                        <div class="glass-morphism rounded-xl p-6 hover-lift overflow-hidden relative card-shadow">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center shadow-md mr-3">
+                                    <i data-feather="phone-call" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800">Call Center</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Monitor and manage call center operations and performance.</p>
+                            <div class="flex items-center text-green-600 text-sm font-medium">
+                                <span>Open module</span>
+                                <i data-feather="arrow-right" class="w-4 h-4 ml-1"></i>
+                            </div>
+                        </div>
+                    </a>
+                    `
+                };
+
+                moduleCards.innerHTML = '';
+                if (modules.includes('campaign')) {
+                    moduleCards.innerHTML += cardTemplates.campaign;
+                }
+                if (modules.includes('callcenter')) {
+                    moduleCards.innerHTML += cardTemplates.callcenter;
+                }
+                if (!modules.length) {
+                    moduleCards.innerHTML = '<div class="col-span-full text-center py-8"><i data-feather="alert-circle" class="w-10 h-10 text-gray-400 mx-auto mb-3"></i><p class="text-gray-500">No modules have been assigned to your account.</p></div>';
+                }
+                
+                // Initialize Feather icons for the newly added elements
+                feather.replace();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                window.location.href = '/';
+            }
+        }
+
+        // Load data on page load
+        loadUserData();
+
+        // Sidebar Toggle
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.remove('-translate-x-full');
+        });
+
+        document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+             sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        // Detect left swipe to close sidebar
+        let touchStartX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+          touchStartX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+         const touchEndX = e.changedTouches[0].clientX;
+         const swipeDistance = touchStartX - touchEndX;
+
+        // Detect left swipe (only if sidebar is open)
+        if (swipeDistance > 50 && !sidebar.classList.contains('-translate-x-full')) {
+           sidebar.classList.add('-translate-x-full');
+          }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('username');
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

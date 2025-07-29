@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Data Viewer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Inline Custom CSS -->
+    <style>
+        /* Improve table scrolling on mobile */
+        @media (max-width: 640px) {
+            .overflow-x-auto {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Add some smooth transitions */
+        .transition {
+            transition: all 0.3s ease;
+        }
+
+        /* Smooth pagination transitions */
+        #pagination button {
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        }
+
+        /* Custom loading animation enhancements */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Custom hover effects for table rows */
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: rgba(243, 244, 246, 0.8) !important;
+        }
+
+        /* Focus styles for inputs */
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Custom scrollbar for table */
+        .overflow-x-auto::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        /* Enhanced styles for better UI/UX */
+        .highlight-row {
+            background-color: rgba(243, 244, 246, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        .highlight-row:hover {
+            background-color: rgba(219, 234, 254, 0.5) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Style for important cells like patient names */
+        .patient-name {
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        /* Better focus states */
+        button:focus, a:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Improve filter spacing */
+        .filter-section {
+            margin-bottom: 1rem;
+        }
+
+        /* Custom card styles */
+        .stat-card {
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Enhanced table styles */
+        #data-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        #data-table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f9fafb;
+            z-index: 10;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .table-wrapper {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Campaign Data Viewer</h1>
+            <p class="text-gray-600">View, search and filter campaign records</p>
+        </header>
+
+        <!-- Loading indicator -->
+        <div id="loading" class="flex items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <span class="ml-3 text-lg text-gray-700">Loading data...</span>
+        </div>
+
+        <!-- Error message -->
+        <div id="error-container" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span id="error-message" class="block sm:inline"></span>
+        </div>
+
+        <!-- Main content -->
+        <div id="content" class="hidden">
+            <!-- Controls section -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold text-blue-800 mb-4 border-b pb-2"><i class="fas fa-filter mr-2"></i>Filters & Search</h3>
+                
+                <!-- Search input - Full width for better visibility -->
+                <div class="mb-6 filter-section">
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                    <div class="relative">
+                        <input type="text" id="search" class="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" 
+                               placeholder="Search by patient name, number, or any other field...">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <!-- Filter by campaign name -->
+                    <div class="col-span-1">
+                        <label for="campaignFilter" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-bullhorn text-blue-500 mr-1"></i> Campaign
+                        </label>
+                        <select id="campaignFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            <option value="">All Campaigns</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Filter by channel -->
+                    <div class="col-span-1">
+                        <label for="channelFilter" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-broadcast-tower text-green-500 mr-1"></i> Channel
+                        </label>
+                        <select id="channelFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            <option value="">All Channels</option>
+                        </select>
+                    </div>
+                
+                    <!-- Filter by template type -->
+                    <div class="col-span-1">
+                        <label for="templateFilter" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-file-alt text-purple-500 mr-1"></i> Template Type
+                        </label>
+                        <select id="templateFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            <option value="">All Template Types</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Filter by delivery -->
+                    <div class="col-span-1">
+                        <label for="deliveryFilter" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-clock text-yellow-500 mr-1"></i> Delivery
+                        </label>
+                        <select id="deliveryFilter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            <option value="">All Delivery Types</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Reset filters button -->
+                <div class="flex justify-end mt-2">
+                    <button id="resetFilters" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow transition flex items-center">
+                        <i class="fas fa-undo mr-2"></i>Reset All Filters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Campaign info section -->
+            <div id="campaign-info" class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-chart-pie text-blue-600 mr-2"></i>Campaign Summary</h2>
+                <div id="campaign-details" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Campaign details will be populated here -->
+                </div>
+            </div>
+
+            <!-- Table section -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2 md:mb-0">Campaign Records</h2>
+                    <div class="flex items-center">
+                        <div class="mr-4">
+                            <span id="record-count" class="text-sm text-gray-600">Showing 0 records</span>
+                        </div>
+                        <div>
+                            <label for="pageSize" class="text-sm text-gray-600 mr-2">Items per page:</label>
+                            <select id="pageSize" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto table-wrapper">
+                    <table id="data-table" class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr id="table-header">
+                                <!-- Table headers will be populated here -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Table rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty state message -->
+                <div id="empty-state" class="hidden p-10 text-center">
+                    <i class="fas fa-search text-gray-400 text-4xl mb-3"></i>
+                    <p class="text-lg text-gray-600">No records found matching your criteria</p>
+                    <p class="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
+                </div>
+
+                <!-- Pagination controls -->
+                <div id="pagination" class="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p id="pagination-info" class="text-sm text-gray-700">
+                                Showing <span id="page-start">0</span> to <span id="page-end">0</span> of <span id="total-records">0</span> records
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span class="sr-only">Previous</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div id="page-numbers" class="bg-white border-gray-300">
+                                    <!-- Page numbers will be populated here -->
+                                </div>
+                                <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span class="sr-only">Next</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inline JavaScript -->
+    <script>
+        // Global variables
+        let campaignData = []; // Original data from API
+        let filteredData = []; // Data after filters applied
+        let currentPage = 1;
+        let pageSize = 10;
+        let sortColumn = null;
+        let sortDirection = 'asc';
+
+        // DOM elements
+        const loadingElement = document.getElementById('loading');
+        const contentElement = document.getElementById('content');
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+        const emptyState = document.getElementById('empty-state');
+        const tableBody = document.getElementById('table-body');
+        const tableHeader = document.getElementById('table-header');
+        const recordCount = document.getElementById('record-count');
+        const campaignDetails = document.getElementById('campaign-details');
+        const paginationInfo = document.getElementById('pagination-info');
+        const pageStart = document.getElementById('page-start');
+        const pageEnd = document.getElementById('page-end');
+        const totalRecords = document.getElementById('total-records');
+        const pageNumbers = document.getElementById('page-numbers');
+        const prevPageButton = document.getElementById('prev-page');
+        const nextPageButton = document.getElementById('next-page');
+
+        // Filter elements
+        const searchInput = document.getElementById('search');
+        const campaignFilter = document.getElementById('campaignFilter');
+        const channelFilter = document.getElementById('channelFilter');
+        const templateFilter = document.getElementById('templateFilter');
+        const deliveryFilter = document.getElementById('deliveryFilter');
+        const resetFiltersButton = document.getElementById('resetFilters');
+        const pageSizeSelect = document.getElementById('pageSize');
+
+        // API URL - use the original API
+        const API_URL = 'http://localhost:8002/read-excel';
+
+        // Fetch data from API
+        async function fetchData() {
+            try {
+                showLoading();
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                campaignData = data;
+                
+                // Process and display data
+                initializeFilters();
+                applyFilters();
+                hideLoading();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showError(`Failed to load data: ${error.message}. Please try again later.`);
+            }
+        }
+
+        // Initialize filter dropdowns with unique values
+        function initializeFilters() {
+            // Get unique campaign names
+            const campaigns = new Set();
+            campaignData.forEach(item => campaigns.add(item.campaign_name));
+            
+            // Clear and populate campaign filter
+            campaignFilter.innerHTML = '<option value="">All Campaigns</option>';
+            campaigns.forEach(campaign => {
+                const option = document.createElement('option');
+                option.value = campaign;
+                option.textContent = campaign;
+                campaignFilter.appendChild(option);
+            });
+            
+            // Find all unique values for other filters by examining records
+            const channels = new Set();
+            const templates = new Set();
+            const deliveries = new Set();
+            
+            campaignData.forEach(campaign => {
+                if (campaign.records && campaign.records.length > 0) {
+                    campaign.records.forEach(record => {
+                        if (record.Channel) channels.add(record.Channel);
+                        if (record['Template Type']) templates.add(record['Template Type']);
+                        if (record['Scheduled Delivery']) deliveries.add(record['Scheduled Delivery']);
+                    });
+                }
+            });
+            
+            // Populate channel filter
+            channelFilter.innerHTML = '<option value="">All Channels</option>';
+            channels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel;
+                option.textContent = channel;
+                channelFilter.appendChild(option);
+            });
+            
+            // Populate template filter
+            templateFilter.innerHTML = '<option value="">All Template Types</option>';
+            templates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template;
+                option.textContent = template;
+                templateFilter.appendChild(option);
+            });
+            
+            // Populate delivery filter
+            deliveryFilter.innerHTML = '<option value="">All Delivery Types</option>';
+            deliveries.forEach(delivery => {
+                const option = document.createElement('option');
+                option.value = delivery;
+                option.textContent = delivery;
+                deliveryFilter.appendChild(option);
+            });
+        }
+
+        // Apply all filters and search to the data
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCampaign = campaignFilter.value;
+            const selectedChannel = channelFilter.value;
+            const selectedTemplate = templateFilter.value;
+            const selectedDelivery = deliveryFilter.value;
+            
+            // First filter campaigns
+            let filteredCampaigns = campaignData;
+            if (selectedCampaign) {
+                filteredCampaigns = campaignData.filter(campaign => campaign.campaign_name === selectedCampaign);
+            }
+            
+            // Then filter and flatten records
+            filteredData = [];
+            
+            filteredCampaigns.forEach(campaign => {
+                if (campaign.records && campaign.records.length > 0) {
+                    // Filter records
+                    const filteredRecords = campaign.records.filter(record => {
+                        // Apply filters
+                        if (selectedChannel && record.Channel !== selectedChannel) return false;
+                        if (selectedTemplate && record['Template Type'] !== selectedTemplate) return false;
+                        if (selectedDelivery && record['Scheduled Delivery'] !== selectedDelivery) return false;
+                        
+                        // Apply search
+                        if (searchTerm) {
+                            const searchMatch = Object.values(record).some(value => 
+                                value && value.toString().toLowerCase().includes(searchTerm)
+                            );
+                            if (!searchMatch) return false;
+                        }
+                        
+                        return true;
+                    });
+                    
+                    // Add campaign info to each record and add to filtered data
+                    filteredRecords.forEach(record => {
+                        filteredData.push({
+                            ...record,
+                            campaign_name: campaign.campaign_name
+                        });
+                    });
+                }
+            });
+            
+            // Update campaign summary
+            updateCampaignSummary();
+            
+            // Apply sorting if active
+            if (sortColumn) {
+                sortData(sortColumn, sortDirection);
+            }
+            
+            // Reset to first page when filters change
+            currentPage = 1;
+            
+            // Render table and pagination
+            renderTable();
+            updatePagination();
+        }
+
+        // Update the campaign summary display
+        function updateCampaignSummary() {
+            // Clear current summary
+            campaignDetails.innerHTML = '';
+            
+            if (campaignData.length === 0) return;
+            
+            // Get selected campaign or first campaign if none selected
+            const selectedCampaign = campaignFilter.value;
+            let campaign;
+            
+            if (selectedCampaign) {
+                campaign = campaignData.find(c => c.campaign_name === selectedCampaign);
+            } else if (filteredData.length > 0) {
+                // Get the first campaign from filtered data
+                const firstCampaignName = filteredData[0].campaign_name;
+                campaign = campaignData.find(c => c.campaign_name === firstCampaignName);
+            } else {
+                // Fallback to first campaign
+                campaign = campaignData[0];
+            }
+            
+            if (!campaign) return;
+            
+            // Campaign name card
+            const nameCard = document.createElement('div');
+            nameCard.className = 'p-4 bg-blue-50 rounded-lg';
+            nameCard.innerHTML = `
+                <h3 class="text-sm font-medium text-blue-800">Campaign Name</h3>
+                <p class="mt-1 text-lg font-semibold text-blue-900">${campaign.campaign_name}</p>
+            `;
+            campaignDetails.appendChild(nameCard);
+            
+            // Total records card
+            const totalRecordsInCampaign = campaign.records ? campaign.records.length : 0;
+            const totalCard = document.createElement('div');
+            totalCard.className = 'p-4 bg-green-50 rounded-lg';
+            totalCard.innerHTML = `
+                <h3 class="text-sm font-medium text-green-800">Total Records</h3>
+                <p class="mt-1 text-lg font-semibold text-green-900">${totalRecordsInCampaign}</p>
+            `;
+            campaignDetails.appendChild(totalCard);
+            
+            // Filtered records card
+            const filteredCount = filteredData.filter(r => r.campaign_name === campaign.campaign_name).length;
+            const filteredCard = document.createElement('div');
+            filteredCard.className = 'p-4 bg-purple-50 rounded-lg';
+            filteredCard.innerHTML = `
+                <h3 class="text-sm font-medium text-purple-800">Filtered Records</h3>
+                <p class="mt-1 text-lg font-semibold text-purple-900">${filteredCount}</p>
+            `;
+            campaignDetails.appendChild(filteredCard);
+            
+            // Most common channel
+            if (campaign.records && campaign.records.length > 0) {
+                const channels = {};
+                campaign.records.forEach(record => {
+                    if (record.Channel) {
+                        channels[record.Channel] = (channels[record.Channel] || 0) + 1;
+                    }
+                });
+                
+                let mostCommonChannel = null;
+                let maxCount = 0;
+                
+                for (const [channel, count] of Object.entries(channels)) {
+                    if (count > maxCount) {
+                        mostCommonChannel = channel;
+                        maxCount = count;
+                    }
+                }
+                
+                if (mostCommonChannel) {
+                    const channelCard = document.createElement('div');
+                    channelCard.className = 'p-4 bg-yellow-50 rounded-lg';
+                    channelCard.innerHTML = `
+                        <h3 class="text-sm font-medium text-yellow-800">Primary Channel</h3>
+                        <p class="mt-1 text-lg font-semibold text-yellow-900">${mostCommonChannel}</p>
+                    `;
+                    campaignDetails.appendChild(channelCard);
+                }
+            }
+        }
+
+        // Render the data table with the current page of filteredData
+        function renderTable() {
+            // Clear current table content
+            tableBody.innerHTML = '';
+            tableHeader.innerHTML = '';
+            
+            // Show empty state if no data
+            if (filteredData.length === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('data-table').classList.add('hidden');
+                document.getElementById('pagination').classList.add('hidden');
+                recordCount.textContent = 'Showing 0 records';
+                return;
+            }
+            
+            // Hide empty state, show table
+            emptyState.classList.add('hidden');
+            document.getElementById('data-table').classList.remove('hidden');
+            document.getElementById('pagination').classList.remove('hidden');
+            
+            // Update record count
+            recordCount.textContent = `Showing ${filteredData.length} records`;
+            
+            // Define important columns that should display first
+            const priorityColumns = ['Patient Number', 'PNAME', 'Mobile Number', 'Channel', 'Template Type', 'Scheduled Delivery'];
+            
+            // Get all columns from the first record
+            const allColumns = Object.keys(filteredData[0]);
+            
+            // Create ordered columns array with priority columns first, then the rest
+            const orderedColumns = [
+                ...priorityColumns.filter(col => allColumns.includes(col)),
+                ...allColumns.filter(col => !priorityColumns.includes(col))
+            ];
+            
+            // Create table header
+            orderedColumns.forEach(column => {
+                const headerCell = document.createElement('th');
+                headerCell.setAttribute('scope', 'col');
+                headerCell.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100';
+                
+                // Add icons to important columns
+                let displayName = column;
+                if (column === 'Patient Number') {
+                    displayName = '<i class="fas fa-id-card text-blue-500 mr-1"></i> ' + column;
+                } else if (column === 'PNAME') {
+                    displayName = '<i class="fas fa-user text-green-500 mr-1"></i> Patient Name';
+                } else if (column === 'Mobile Number') {
+                    displayName = '<i class="fas fa-phone text-indigo-500 mr-1"></i> ' + column;
+                } else if (column === 'Channel') {
+                    displayName = '<i class="fas fa-broadcast-tower text-purple-500 mr-1"></i> ' + column;
+                }
+                
+                headerCell.innerHTML = displayName;
+                
+                // Add sort indicator if this is the sorted column
+                if (sortColumn === column) {
+                    headerCell.innerHTML += sortDirection === 'asc' 
+                        ? ' <i class="fas fa-sort-up ml-1"></i>' 
+                        : ' <i class="fas fa-sort-down ml-1"></i>';
+                } else {
+                    headerCell.innerHTML += ' <i class="fas fa-sort ml-1 text-gray-300"></i>';
+                }
+                
+                // Add click event for sorting
+                headerCell.addEventListener('click', () => {
+                    // Toggle direction if same column, otherwise default to ascending
+                    if (sortColumn === column) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortColumn = column;
+                        sortDirection = 'asc';
+                    }
+                    
+                    sortData(column, sortDirection);
+                    renderTable();
+                });
+                
+                tableHeader.appendChild(headerCell);
+            });
+            
+            // Calculate pagination
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredData.length);
+            const paginatedData = filteredData.slice(startIndex, endIndex);
+            
+            // Render table rows
+            paginatedData.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'highlight-row' : 'bg-gray-50 highlight-row';
+                
+                // Add cells for each column
+                orderedColumns.forEach(column => {
+                    const cell = document.createElement('td');
+                    cell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    
+                    // Format the cell value
+                    const value = record[column] ? record[column].toString() : '';
+                    
+                    // Change styling based on column type
+                    if (column === 'PNAME') {
+                        cell.className = 'px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-800 patient-name';
+                        cell.innerHTML = `<div class="flex items-center">
+                            <span class="inline-block w-8 h-8 rounded-full bg-blue-100 text-blue-700 mr-3 flex items-center justify-center">
+                                ${value.charAt(0)}
+                            </span>
+                            ${value}
+                        </div>`;
+                    } else if (column === 'Patient Number') {
+                        cell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                        cell.innerHTML = `<span class="font-mono">${value}</span>`;
+                    } else if (column === 'Channel') {
+                        let bgColor = 'bg-blue-100 text-blue-800';
+                        if (value === 'Email') bgColor = 'bg-green-100 text-green-800';
+                        else if (value === 'WhatsApp') bgColor = 'bg-emerald-100 text-emerald-800';
+                        
+                        cell.innerHTML = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${bgColor}">${value}</span>`;
+                    } else if (column === 'Scheduled Delivery') {
+                        let bgColor = 'bg-green-100 text-green-800';
+                        if (value.includes('Delayed')) bgColor = 'bg-yellow-100 text-yellow-800';
+                        else if (value.includes('Scheduled')) bgColor = 'bg-purple-100 text-purple-800';
+                        
+                        cell.innerHTML = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${bgColor}">${value}</span>`;
+                    } else if (column === 'Template Type') {
+                        cell.innerHTML = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">${value}</span>`;
+                    } else if (column === 'Mobile Number') {
+                        cell.innerHTML = `<div class="flex items-center">
+                            <i class="fas fa-phone text-gray-400 mr-2"></i>
+                            <span>${value}</span>
+                        </div>`;
+                    } else if (column === 'EMail' && value) {
+                        cell.innerHTML = `<div class="flex items-center">
+                            <i class="fas fa-envelope text-gray-400 mr-2"></i>
+                            <span>${value}</span>
+                        </div>`;
+                    } else {
+                        cell.textContent = value;
+                    }
+                    
+                    row.appendChild(cell);
+                });
+                
+                // Add click event to show row details
+                row.addEventListener('click', () => {
+                    // Toggle highlighting the selected row
+                    document.querySelectorAll('tr.selected-row').forEach(tr => {
+                        if (tr !== row) tr.classList.remove('selected-row', 'bg-blue-50');
+                    });
+                    row.classList.toggle('selected-row');
+                    row.classList.toggle('bg-blue-50');
+                });
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Sort the filtered data
+        function sortData(column, direction) {
+            filteredData.sort((a, b) => {
+                const valueA = a[column] ? a[column].toString().toLowerCase() : '';
+                const valueB = b[column] ? b[column].toString().toLowerCase() : '';
+                
+                // Handle numeric values
+                if (!isNaN(valueA) && !isNaN(valueB)) {
+                    return direction === 'asc' 
+                        ? parseFloat(valueA) - parseFloat(valueB)
+                        : parseFloat(valueB) - parseFloat(valueA);
+                }
+                
+                // Handle string values
+                if (direction === 'asc') {
+                    return valueA.localeCompare(valueB);
+                } else {
+                    return valueB.localeCompare(valueA);
+                }
+            });
+        }
+
+        // Update pagination controls
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            
+            // Update pagination text
+            const start = filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, filteredData.length);
+            
+            pageStart.textContent = start;
+            pageEnd.textContent = end;
+            totalRecords.textContent = filteredData.length;
+            
+            // Enable/disable prev/next buttons
+            prevPageButton.disabled = currentPage === 1;
+            nextPageButton.disabled = currentPage === totalPages || totalPages === 0;
+            
+            // Create page number buttons
+            pageNumbers.innerHTML = '';
+            
+            // Determine page range to show (show up to 5 pages)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            // Adjust if we're near the end
+            if (endPage - startPage < 4 && startPage > 1) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            
+            // Add first page button if not included in range
+            if (startPage > 1) {
+                addPageButton(1);
+                if (startPage > 2) {
+                    addEllipsis();
+                }
+            }
+            
+            // Add page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                addPageButton(i);
+            }
+            
+            // Add last page button if not included in range
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    addEllipsis();
+                }
+                addPageButton(totalPages);
+            }
+        }
+
+        // Add a page number button to pagination
+        function addPageButton(pageNum) {
+            const button = document.createElement('button');
+            button.className = currentPage === pageNum
+                ? 'relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-700'
+                : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50';
+            button.textContent = pageNum;
+            
+            button.addEventListener('click', () => {
+                if (currentPage !== pageNum) {
+                    currentPage = pageNum;
+                    renderTable();
+                    updatePagination();
+                }
+            });
+            
+            pageNumbers.appendChild(button);
+        }
+
+        // Add ellipsis to pagination
+        function addEllipsis() {
+            const span = document.createElement('span');
+            span.className = 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700';
+            span.textContent = '...';
+            pageNumbers.appendChild(span);
+        }
+
+        // Show loading indicator
+        function showLoading() {
+            loadingElement.classList.remove('hidden');
+            contentElement.classList.add('hidden');
+            errorContainer.classList.add('hidden');
+        }
+
+        // Hide loading indicator
+        function hideLoading() {
+            loadingElement.classList.add('hidden');
+            contentElement.classList.remove('hidden');
+        }
+
+        // Show error message
+        function showError(message) {
+            loadingElement.classList.add('hidden');
+            errorContainer.classList.remove('hidden');
+            errorMessage.textContent = message;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch initial data
+            fetchData();
+            
+            // Set up search input event
+            searchInput.addEventListener('input', debounce(() => {
+                applyFilters();
+            }, 300));
+            
+            // Set up filter change events
+            campaignFilter.addEventListener('change', applyFilters);
+            channelFilter.addEventListener('change', applyFilters);
+            templateFilter.addEventListener('change', applyFilters);
+            deliveryFilter.addEventListener('change', applyFilters);
+            
+            // Set up page size change
+            pageSizeSelect.addEventListener('change', () => {
+                pageSize = parseInt(pageSizeSelect.value);
+                currentPage = 1; // Reset to first page
+                renderTable();
+                updatePagination();
+            });
+            
+            // Set up reset filters button
+            resetFiltersButton.addEventListener('click', () => {
+                searchInput.value = '';
+                campaignFilter.value = '';
+                channelFilter.value = '';
+                templateFilter.value = '';
+                deliveryFilter.value = '';
+                applyFilters();
+            });
+            
+            // Set up pagination navigation
+            prevPageButton.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                    updatePagination();
+                }
+            });
+            
+            nextPageButton.addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredData.length / pageSize);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                    updatePagination();
+                }
+            });
+        });
+
+        // Debounce function to limit how often a function runs
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+    </script>
+</body>
+</html>

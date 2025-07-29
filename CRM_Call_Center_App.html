@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Symphony Dashboard</title>
+    <meta name="description" content="Advanced patient health analytics dashboard" />
+    <meta name="author" content="Symphony Health" />
+    <meta property="og:image" content="/og-image.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #f8f9fa;
+            --accent: #f72585;
+            --success: #10b981;
+            --warning: #fbbf24;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --text-primary: #1f2a44;
+            --text-secondary: #6c7686;
+            --border: #e5e7eb;
+            --card-bg: linear-gradient(145deg, #ffffff, #f8fafc);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --background: #f5f6f8;
+            --transition-speed: 0.3s;
+        }
+
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary: #4cc9f0;
+            --primary-dark: #3a9fc0;
+            --secondary: #1f2937;
+            --accent: #f72585;
+            --success: #10b981;
+            --warning: #fbbf24;
+            --danger: #ef4444;
+            --info: #60a5fa;
+            --text-primary: #e5e7eb;
+            --text-secondary: #cfcfcf;
+            --border: #374151;
+            --card-bg: linear-gradient(145deg, #1f2937, #111827);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            --background: #111827;
+            --transition-speed: 0.3s;
+        }
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+       
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow);
+            border-radius: 16px;
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            position: relative;
+            overflow: hidden;
+            will-change: box-shadow;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s ease, border 0.3s ease;
+        }
+
+        [data-theme="dark"] header {
+            background: rgba(17, 24, 39, 0.95);
+        }
+
+
+        .input-container {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] .input-container {
+            background: #1f2937;
+        }
+
+        input {
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            width: 100%;
+            background: transparent;
+        }
+
+        .btn {
+            padding: 0.65rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all var(--transition-speed) ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+            .btn::after {
+                content: '';
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: -100%;
+                background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.2), rgba(255,255,255,0));
+                transition: left 0.6s ease;
+            }
+
+            .btn:hover::after {
+                left: 100%;
+            }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background: var(--primary-dark);
+                transform: translateY(-3px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .btn-secondary {
+            background: #1f2937;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] .btn-secondary:hover {
+            background-color: #2d3748;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border: none;
+        }
+
+            .btn-success:hover {
+                background: #0da271;
+                transform: translateY(-3px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+        }
+
+            .btn-danger:hover {
+                background: #dc2626;
+                transform: translateY(-3px);
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+            }
+
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+        }
+
+        #patient-info h3 {
+            font-weight: bold;
+        }
+
+        #test-results h3 {
+            font-weight: 500;
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Skeleton Loading Animation */
+        .loading-skeleton {
+            position: relative;
+            overflow: hidden;
+            background-color: #d7dce0;
+            border-radius: 0.25rem;
+        }
+
+        [data-theme="dark"] .loading-skeleton {
+            background-color: #374151;
+        }
+
+        .loading-skeleton::after {
+            position: absolute;
+            inset: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
+            animation: shimmer 2s infinite;
+            content: '';
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleUp {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .animate-slide-in-up {
+            animation: slideInUp 0.4s ease-out;
+        }
+
+        .animate-scale-up {
+            animation: scaleUp 0.4s ease-out;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        /* Utility classes */
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .gap-6 {
+            gap: 1.5rem;
+        }
+
+        .p-4 {
+            padding: 1rem;
+        }
+
+        .p-6 {
+            padding: 1.5rem;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mt-6 {
+            margin-top: 1.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .min-h-300 {
+            min-height: 300px;
+        }
+
+        .rounded-lg {
+            border-radius: 8px;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        p {
+            color: var(--text-secondary);
+        }
+
+        /* Dark mode toggle styles */
+        .theme-toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: #626568;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+            .theme-toggle::after {
+                content: '';
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                left: 2px;
+                top: 2px;
+                background: #ffffff;
+                border-radius: 50%;
+                transition: transform 0.3s ease;
+            }
+
+        [data-theme="dark"] .theme-toggle::after {
+            transform: translateX(24px);
+        }
+
+        .ml-6.bg-gray-50.rounded-lg.p-3 {
+            transition: background-color 0.3s ease;
+        }
+
+        /* Dark mode table container */
+        [data-theme="dark"] .ml-6.bg-gray-50.rounded-lg.p-3 {
+            background-color: #1f2937;
+        }
+    </style>
+    <script>
+        function decryptData(data) {
+            return decodeURIComponent(atob(data));
+        }
+
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encryptedPatientNumber = urlParams.get("pnumber");
+
+            if (encryptedPatientNumber) {
+                const patientNumber = decryptData(encryptedPatientNumber);
+                document.getElementById("patientId").value = patientNumber;
+                document.getElementById("patientId").disabled = true;
+            }
+
+            // Load saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        };
+    </script>
+</head>
+  <body>
+      <div class="flex flex-col min-h-screen">
+          <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                  <h1 class="text-2xl font-semibold">Patient Symphony</h1>
+                  <p class="text-sm text-muted">Enterprise Health Analytics</p>
+              </div>
+              <div class="flex items-center gap-4">
+                  <div title="Toggle Theme" class="theme-toggle" onclick="toggleTheme()"></div>
+                  <button id="manageIndexedDB" title="Manage IndexedDB" class="btn btn-secondary">
+                      <i class="fa fa-database"></i>
+                      Manage DB
+                  </button>
+                  <a href="light.html" class="btn btn-primary flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l11-11m-5 5H5v10a1 1 0 001 1h10" />
+                      </svg>
+                      Search Patient
+                  </a>
+              </div>
+          </header>
+          <div id="indexedDBModal" class="md:fixed md:mt-20 inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full m-2 max-h-[80vh] overflow-y-auto">
+                  <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Manage IndexedDB</h2>
+                      <button id="closeModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                          <i class="fa fa-times"></i>
+                      </button>
+                  </div>
+                  <div class="p-6">
+                      <div id="dbRecords" class="space-y-4">
+                          <!-- Records will be dynamically populated here -->
+                      </div>
+					  <div id="totRecords" class="my-3">
+					     <div class="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <span class="text-gray-600 dark:text-gray-300"><i class="fa fa-database"></i> Total Saved Records:</span>
+                                <span id="TotalRecords" class="font-medium text-blue-600 dark:text-gray-400">Calculating...</span>
+                          </div>
+					  </div>
+                      <div id="noRecords" class="text-center text-gray-500 dark:text-gray-400 hidden">
+                          <i class="fa fa-info-circle mr-2"></i>
+                          No records found in IndexedDB.
+                      </div>
+                      <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg my-3">
+                          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                              <i class="fa fa-hdd-o mr-2 text-blue-500"></i>
+                              Storage Usage
+                          </h3>
+                          <div class="space-y-4">
+                              <div class="flex justify-between text-sm">
+                                  <span class="text-gray-600 dark:text-gray-300">Used Storage:</span>
+                                  <span id="usedStorage" class="font-medium text-red-500 dark:text-white">Calculating...</span>
+                              </div>
+                              <div class="flex justify-between text-sm">
+                                  <span class="text-gray-600 dark:text-gray-300">Total Quota:</span>
+                                  <span id="totalQuota" class="font-medium text-blue-500 dark:text-white">Calculating...</span>
+                              </div>
+                              <div class="flex justify-between text-sm">
+                                  <span class="text-gray-600 dark:text-gray-300">Remaining:</span>
+                                  <span id="remainingStorage" class="font-medium text-green-500 dark:text-white">Calculating...</span>
+                              </div>
+                              <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-600">
+                                  <div id="storageProgress" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-4">
+                      <button id="clearAllRecords" class="btn btn-danger">
+                          <i class="fa fa-trash"></i>
+                          Clear All Records
+                      </button>
+                      <button id="closeModalBtn" class="btn btn-secondary">
+                          Close
+                      </button>
+                  </div>
+              </div>
+          </div>
+          <main class="flex-1">
+              <div class="container">
+                  <div id="alert-message" style="z-index: 9999" class="fixed top-6 right-6 z-50 max-w-sm hidden"></div>
+                  <div class="mb-6">
+                      <div class="mt-2 max-w-lg">
+                          <div class="input-container flex items-center gap-4">
+                              <input type="text" id="patientId" class="w-full" placeholder="Enter Patient Number" />
+                              <button id="fetchData" title="Search" class="btn btn-primary">
+                                  <i class="fa fa-search"></i>
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+                  <!-- Loading Skeleton -->
+                  <div id="loading" class="space-y-6 animate-pulse hidden">
+                      <div class="card p-4 space-y-3">
+                          <div class="loading-skeleton h-7 w-60"></div>
+                          <div class="grid grid-cols-2 gap-4 mt-4">
+                              <div class="space-y-2">
+                                  <div class="loading-skeleton h-4 w-full"></div>
+                                  <div class="loading-skeleton h-4 w-full"></div>
+                                  <div class="loading-skeleton h-4 w-4/5"></div>
+                              </div>
+                              <div class="space-y-2">
+                                  <div class="loading-skeleton h-4 w-full"></div>
+                                  <div class="loading-skeleton h-4 w-full"></div>
+                                  <div class="loading-skeleton h-4 w-4/5"></div>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div class="card p-4 space-y-3">
+                              <div class="loading-skeleton h-6 w-2/5"></div>
+                              <div class="mt-4 h-64 w-full loading-skeleton rounded-md"></div>
+                          </div>
+                          <div class="card p-4 space-y-3">
+                              <div class="loading-skeleton h-6 w-2/5"></div>
+                              <div class="mt-4 h-64 w-full loading-skeleton rounded-md"></div>
+                          </div>
+                      </div>
+                      <div class="card p-4 space-y-3">
+                          <div class="loading-skeleton h-6 w-2/5"></div>
+                          <div class="space-y-2">
+                              <div class="loading-skeleton h-4 w-full"></div>
+                              <div class="loading-skeleton h-4 w-full"></div>
+                              <div class="loading-skeleton h-4 w-4/5"></div>
+                          </div>
+                      </div>
+                  </div>
+                  <!-- Empty State (shown when no data is loaded) -->
+                  <div id="empty-state" class="flex flex-col items-center justify-center py-16 text-center">
+                      <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2">
+                              <circle cx="11" cy="11" r="8"></circle>
+                              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                          </svg>
+                      </div>
+                      <h3 class="text-xl font-medium mb-2">Enter Patient Number</h3>
+                      <p class="text-muted max-w-md">
+                          Access detailed patient records, visit history, and analytics by entering a patient ID.
+                      </p>
+                  </div>
+                  <!-- Dashboard Content (initially hidden)-->
+                  <div id="dashboard" class="space-y-6 hidden">
+                      <div class="flex justify-end">
+                          <button id="syncData" class="btn btn-sm btn-secondary">
+                              <i class="fa fa-cloud"></i>
+                              Sync
+                          </button>
+                      </div>
+                      <div id="patient-info" class="card p-6 animate-scale-up"></div>
+                      <div class="grid md:grid-cols-2 gap-6">
+                          <div class="card p-6">
+                              <div class="flex items-center mb-4">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" class="mr-2">
+                                      <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                      <line x1="16" x2="16" y1="2" y2="6"></line>
+                                      <line x1="8" x2="8" y1="2" y2="6"></line>
+                                      <line x1="3" x2="21" y1="10" y2="10"></line>
+                                  </svg>
+                                  <h3 class="font-medium">Visit Timeline</h3>
+                              </div>
+                              <div class="min-h-[300px]">
+                                  <canvas id="visit-timeline"></canvas>
+                              </div>
+                          </div>
+                          <div class="card p-6">
+                              <div class="flex items-center mb-4">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" class="mr-2">
+                                      <rect width="3" height="15" x="6" y="5" rx="1"></rect>
+                                      <rect width="3" height="9" x="10.5" y="11" rx="1"></rect>
+                                      <rect width="3" height="20" x="15" y="2" rx="1"></rect>
+                                  </svg>
+                                  <h3 class="font-medium">Cost Trend</h3>
+                              </div>
+                              <div class="min-h-[300px]">
+                                  <canvas id="billing-trend"></canvas>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="card p-6">
+                          <h3 class="font-medium mb-4">Potential Risks</h3>
+                          <ul id="potential-risks-list" class="grid grid-cols-1 md:grid-cols-2 gap-5 list-none"></ul>
+                      </div>
+                      <div class="grid md:grid-cols-2 gap-6">
+                          <div class="card p-6">
+                              <div class="flex items-center mb-4">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" class="mr-2">
+                                      <path d="M4 4h16v12H10l-2 4-2-4H4V4z" fill="none" stroke="#1a73e8" />
+                                      <path d="M8 16l-4 4m0-4l4 4" stroke="#1a73e8" stroke-linecap="round" />
+                                      <path d="M16 16l4 4m0-4l-4 4" stroke="#1a73e8" stroke-linecap="round" />
+                                      <line x1="8" y1="8" x2="16" y2="8" stroke="#1a73e8" />
+                                      <line x1="8" y1="12" x2="14" y2="12" stroke="#1a73e8" />
+                                  </svg>
+                                  <h3 class="font-medium">Billing Distribution</h3>
+                              </div>
+                              <div class="min-h-[350px]">
+                                  <canvas id="billing-chart"></canvas>
+                              </div>
+                          </div>
+                          <div class="card p-6">
+                              <div class="flex items-center mb-4">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" class="mr-2">
+                                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                  </svg>
+                                  <h3 class="font-medium">Test Distribution</h3>
+                              </div>
+                              <div class="min-h-[350px]">
+                                  <canvas id="test-distribution"></canvas>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="card p-6">
+                          <h3 class="font-medium mb-4">Patient Visits</h3>
+                          <div id="visits-section"></div>
+                      </div>
+                      <div class="card p-6">
+                          <div class="flex justify-between items-center mb-4">
+                              <h3 class="font-medium">Test Results</h3>
+                              <button onclick="window.print()" class="btn btn-secondary no-print">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <path d="M17 10H7a4 4 0 0 0-4 4v6h18v-6a4 4 0 0 0-4-4Z"></path>
+                                      <path d="M15 9V3H9v6"></path>
+                                      <path d="M8 19v3h8v-3"></path>
+                                  </svg>
+                                  Print Report
+                              </button>
+                          </div>
+                          <div class="print-header hidden">
+                              <h1 class="text-2xl font-bold text-center">Laboratory Test Report</h1>
+                              <p id="print-header-info" class="text-center text-muted mt-2"></p>
+                          </div>
+                          <div id="test-results" class="grid md:grid-cols-2 gap-6"></div>
+                      </div>
+                  </div>
+              </div>
+          </main>
+
+      </div>
+
+    <script>
+     // Theme toggle function
+      function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      }
+      // Global variables
+      let currentPatientId = null;
+      let chartInstances = {
+        billingChart: null,
+        billingTrend: null,
+        visitTimeline: null,
+        testDistribution: null
+      };
+      
+      // DOM Elements
+      const patientIdInput = document.getElementById("patientId");
+      const fetchDataBtn = document.getElementById("fetchData");
+      const syncDataBtn = document.getElementById("syncData");
+      const loadingEl = document.getElementById("loading");
+      const emptyStateEl = document.getElementById("empty-state");
+      const dashboardEl = document.getElementById("dashboard");
+      const alertEl = document.getElementById("alert-message");
+      const patientInfoEl = document.getElementById("patient-info");
+      const visitsSection = document.getElementById("visits-section");
+      const testResults = document.getElementById("test-results");
+      const printHeaderInfo = document.getElementById("print-header-info");      
+      // Alert types
+      const ALERT_TYPES = {
+        ERROR: "error",
+        SUCCESS: "success",
+        WARNING: "warning",
+        INFO: "info"
+      };
+
+      // Show alert message
+      function showAlert(message, type = ALERT_TYPES.ERROR) {
+        const bgColor = type === ALERT_TYPES.SUCCESS ? "bg-green-50" : "bg-red-50";
+        const borderColor = type === ALERT_TYPES.SUCCESS ? "border-green-200" : "border-red-200";
+        const textColor = type === ALERT_TYPES.SUCCESS ? "text-green-800" : "text-red-800";
+        const icon = type === ALERT_TYPES.SUCCESS 
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+        
+        alertEl.className = `fixed top-22 right-3 z-50 max-w-sm transition-all duration-300 ${bgColor} ${borderColor} border rounded-lg shadow-lg`;
+        alertEl.innerHTML = `
+          <div class="p-4 flex items-start">
+            <div class="flex-shrink-0 mr-3">
+              ${icon}
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium ${textColor}">${message}</p>
+            </div>
+            <button 
+              onclick="this.parentElement.parentElement.classList.add('opacity-0'); setTimeout(() => this.parentElement.parentElement.classList.add('hidden'), 300);"
+              class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        `;
+        
+        alertEl.classList.remove('hidden');
+        
+        // Animation sequence
+        setTimeout(() => {
+          alertEl.classList.remove('opacity-0', 'translate-y-[-1rem]');
+          alertEl.classList.add('opacity-100', 'translate-y-0');
+        }, 10);
+        
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+          alertEl.classList.remove('opacity-100', 'translate-y-0');
+          alertEl.classList.add('opacity-0', 'translate-y-[-1rem]');
+          setTimeout(() => alertEl.classList.add('hidden'), 300);
+        }, 5000);
+      }
+
+      //create browser indexdb
+        async function initIndexedDb() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("PatientDashboardDB", 2);
+
+                request.onupgradeneeded = function (event) {
+                    const db = event.target.result;
+
+                    // Create the object store if not exists
+                    if (!db.objectStoreNames.contains('patients')) {
+                        db.createObjectStore('patients', { keyPath: 'id' });
+                    }
+                };
+
+                request.onsuccess = function (event) {
+                    event.target.result.close();
+                    resolve();
+                };
+
+                request.onerror = function (e) {
+                    console.error("IndexedDB init failed:", e);
+                    reject(e);
+                };
+            });
+        }
+
+
+        // Save with SnappyJS compression
+        async function saveDbToIndexedDb(patientId, data) {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("PatientDashboardDB", 2);
+
+                request.onupgradeneeded = function (event) {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('patients')) {
+                        db.createObjectStore('patients', { keyPath: 'id' });
+                    }
+                };
+
+                request.onsuccess = function (event) {
+                    const idb = event.target.result;
+                    const transaction = idb.transaction(['patients'], 'readwrite');
+                    const store = transaction.objectStore('patients');
+
+                    // ✅ Compress the JSON before saving
+                    const jsonStr = JSON.stringify(data);
+                    const compressed = Array.from(pako.deflate(jsonStr));
+
+                    store.put({ id: patientId, data: compressed });
+                    console.log(`Compressed data saved/updated for patient: ${patientId}`);
+
+                    transaction.oncomplete = function () {
+                        idb.close();
+                        resolve();
+                    };
+
+                    transaction.onerror = function (error) {
+                        console.error("Transaction error:", error);
+                        reject(error);
+                    };
+                };
+
+                request.onerror = function (error) {
+                    console.error("DB open error:", error);
+                    reject(error);
+                };
+            });
+        }
+
+
+        // Load and decompress with SnappyJS
+        async function checkIndexDBStorage(patientId) {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("PatientDashboardDB", 2);
+
+                request.onsuccess = function (event) {
+                    const idb = event.target.result;
+                    const transaction = idb.transaction(['patients'], 'readonly');
+                    const store = transaction.objectStore('patients');
+                    const getRequest = store.get(patientId);
+
+                    getRequest.onsuccess = function (event) {
+                        const result = event.target.result;
+
+                        if (result && result.data) {
+                            try {
+                                const compressedArray = new Uint8Array(result.data);
+                                const decompressed = pako.inflate(compressedArray, { to: 'string' });
+                                resolve(JSON.parse(decompressed));
+                            } catch (err) {
+                                console.error("Decompression failed:", err);
+                                resolve(null);
+                            }
+                        } else {
+                            resolve(null);
+                        }
+
+                        idb.close();
+                    };
+
+                    getRequest.onerror = function (e) {
+                        console.error("Error reading from IndexedDB:", e);
+                        reject(e);
+                    };
+                };
+
+                request.onerror = function (e) {
+                    console.error("IndexedDB open error:", e);
+                    reject(e);
+                };
+            });
+        }
+
+
+
+
+      // Fetch  data
+        async function fetchData() {
+            const patientId = patientIdInput.value.trim();
+            if (!patientId) {
+                showAlert("Please enter a valid Patient ID.");
+                return;
+            }
+
+            currentPatientId = patientId;
+            showLoading();
+
+            try {
+                // ✅ Ensure IndexedDB is initialized
+                await initIndexedDb();
+                const start = performance.now();
+                const localData = await checkIndexDBStorage(patientId);
+
+                if (localData) {
+                    validateData(localData);
+                    loadData(localData);
+                    const end = performance.now();
+                    console.log(`Loading Time Using IndexDb: ${(end - start).toFixed(2)} ms`);
+                    showAlert("Data loaded from IndexDB storage", ALERT_TYPES.SUCCESS);
+                    document.getElementById("dashboard").style.display = "";
+                    hideLoading();
+                    return;
+                }
+
+                // If no local data, fetch from API
+                const apiUrl = `https://blueshift.abi-health.com:3000/patientnumber/${patientId}`;
+                const response = await fetch(apiUrl, {
+                    method: "GET",
+                    headers: {
+                        "x-api-key": "q1riHeoxylJy41TqzOXT75rty/yGU2e1pk+0GGFMrTUJ3fB67uIQXGzC47dvg6s3iSnczDxsK9fm+AStHt9ZDQ==",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `API Error: ${response.statusText}`,
+                    );
+                }
+
+                const data = await response.json();
+                validateData(data);
+                await saveDbToIndexedDb(patientId, data);
+                loadData(data);
+                showAlert("Data fetched successfully!", ALERT_TYPES.SUCCESS);
+                document.getElementById("dashboard").style.display = "";
+            } catch (error) {
+                showAlert("Error fetching data: " + error.message);
+                document.getElementById("dashboard").style.display = "none";
+            } finally {
+                hideLoading();
+            }
+        }
+
+      // Sync data
+        async function syncData() {
+            if (!currentPatientId) return;
+
+            showLoading();
+
+            try {
+                // ✅ Ensure IndexedDB is initialized
+                await initIndexedDb();
+				const start = performance.now();
+                const apiUrl = `https://blueshift.abi-health.com:3000/patientnumber/${currentPatientId}`;
+                const response = await fetch(apiUrl, {
+                    method: "GET",
+                    headers: {
+                        "x-api-key": "q1riHeoxylJy41TqzOXT75rty/yGU2e1pk+0GGFMrTUJ3fB67uIQXGzC47dvg6s3iSnczDxsK9fm+AStHt9ZDQ==",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                validateData(data);
+
+                // Save (or update) into IndexedDB
+                await saveDbToIndexedDb(currentPatientId, data);
+                loadData(data);
+				const end = performance.now();
+                console.log(`Loading Time Using Direct API Server: ${(end - start).toFixed(2)} ms`);
+                showAlert("Data synced successfully!", ALERT_TYPES.SUCCESS);
+            } catch (error) {
+                showAlert("Error syncing data: " + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+
+      // Show loading state
+      function showLoading() {
+        emptyStateEl.classList.add('hidden');
+        dashboardEl.classList.add('hidden');
+        loadingEl.classList.remove('hidden');
+      }
+
+      // Hide loading state
+      function hideLoading() {
+        loadingEl.classList.add('hidden');
+        if (currentPatientId) {
+          dashboardEl.classList.remove('hidden');
+          emptyStateEl.classList.add('hidden');
+        } else {
+          dashboardEl.classList.add('hidden');
+          emptyStateEl.classList.remove('hidden');
+        }
+      }
+
+      // Validate data
+      function validateData(data) {
+        const required = [
+          "PatientVisits",
+          "PatientDemographics",
+          "BillingDetails",
+          "OrderedTests",
+        ];
+        const missing = required.filter(
+          (key) => !data[key] || !Array.isArray(data[key]),
+        );
+
+        if (missing.length) {
+          throw new Error(
+            `Missing or invalid data: ${missing.join(", ")}`,
+          );
+        }
+        return true;
+      }
+
+      // Load data into the dashboard
+        function loadData(data) {
+            if (!data) return;
+
+            try {
+                // Load patient demographics
+                if (data.PatientDemographics && data.PatientDemographics.length > 0) {
+                    const patient = data.PatientDemographics[0];
+                    // Update print header
+                    printHeaderInfo.textContent = `Patient: ${patient.PNAME} | ID: ${patient.PATIENTID}`;
+
+                    // Load patient info card
+                    patientInfoEl.innerHTML = `
+          <h3 class="font-medium mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" class="mr-2">
+              <circle cx="12" cy="7" r="4"></circle>
+              <path d="M12 11v6a4 4 0 0 0 4 4h4"></path>
+              <path d="M12 17v3"></path>
+            </svg>
+            Patient Information
+          </h3>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Name</p>
+                  <p class="font-medium">${patient.PNAME}</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                  <line x1="16" x2="16" y1="2" y2="6"></line>
+                  <line x1="8" x2="8" y1="2" y2="6"></line>
+                  <line x1="3" x2="21" y1="10" y2="10"></line>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Date of Birth</p>
+                  <p class="font-medium">${new Date(patient.DOB).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Age</p>
+                  <p class="font-medium">${patient.Age}</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Gender</p>
+                  <p class="font-medium">${patient.SEX === "F" ? "Female" : "Male"}</p>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Patient ID</p>
+                  <p class="font-medium">${patient.PATIENTID}</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Mobile Number</p>
+                  <p class="font-medium">${patient.MobileNumber}</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path>
+                  <path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.07 0L2 10"></path>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Email</p>
+                  <p class="font-medium">${patient.Email || "N/A"}</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-3 mt-1">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <div>
+                  <p class="text-sm text-muted">Address Type</p>
+                  <p class="font-medium">${patient.AddressTYpe === "P" ? "Permanent" : "Current"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <div class="flex justify-between">
+              <div>
+                <span class="text-sm text-muted">Registration Date: </span>
+                <span class="font-medium">${new Date(patient.RegistrationDTTM).toLocaleDateString()}</span>
+              </div>
+              <div>
+                <span class="badge ${patient.PatientStatus === "A" ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                  ${patient.PatientStatus === "A" ? "Active" : "Inactive"}
+                </span>
+              </div>
+            </div>
+          </div>
+        `;
+
+                    // Load visits section
+                    visitsSection.innerHTML = "";
+                    data.PatientVisits.forEach((visit) => {
+                        const totalBilling = data.BillingDetails
+                            .filter((bill) => bill.PatientVisitID === visit.PatientVisitID)
+                            .reduce((total, bill) => total + bill.Amount, 0)
+                            .toFixed(2);
+
+                        const visitCard = document.createElement("div");
+                        visitCard.className = "card mb-4";
+                        visitCard.innerHTML = `
+            <div class="p-4 flex justify-between items-center cursor-pointer" onclick="toggleVisitCard(this)">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2">
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                    <line x1="12" x2="12" y1="8" y2="16"></line>
+                    <line x1="8" x2="16" y1="12" y2="12"></line>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-medium">Visit #${visit.VisitNumber}</h4>
+                  <p class="text-sm text-muted">${new Date(visit.VisitDate).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <span class="badge bg-blue-100 text-blue-800">₹${totalBilling}</span>
+                <svg class="visit-chevron w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="visit-details hidden p-4 border-t border-gray-200">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <div class="flex items-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A4A4A" stroke-width="2" class="mr-2">
+                      <path d="M6 18c0-6 12-6 12 0"></path>
+                      <path d="M6 18v-6c0-4 6-4 6-4"></path>
+                      <circle cx="6" cy="18" r="1"></circle>
+                      <circle cx="18" cy="18" r="1"></circle>
+                      <circle cx="12" cy="8" r="2"></circle>
+                    </svg>
+                    <h5 class="font-medium">Referring Physician</h5>
+                  </div>
+                  <p class="ml-6">${visit.ReferingPhysicianName || "Not Specified"}</p>
+                </div>
+                <div>
+                  <div class="flex items-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" class="mr-2">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                      <path d="M15 2H9v4h6V2z"></path>
+                      <path d="M10 10l-2 4"></path>
+                      <path d="M8 14l2 4"></path>
+                      <path d="M10 18h2"></path>
+                    </svg>
+                    <h5 class="font-medium">Ordered Tests</h5>
+                  </div>
+                  <ul class="ml-6 space-y-1">
+                    ${data.OrderedTests
+                                .filter(test => test.VisitID === visit.PatientVisitID)
+                                .map(test => `
+                        <li class="text-sm flex items-center">
+                          <span class="w-2 h-2 rounded-full bg-blue-400 mr-2"></span>
+                          ${test.ORDNAME}
+                        </li>
+                      `).join('')}
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-4">
+                <div class="flex items-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6c86" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                    <path d="M6 2h12a2 2 0 0 1 2 2v16l-2-1.5L14 20l-4-1.5L6 20l-2 1.5V4a2 2 0 0 1 2-2z"/>
+                    <path d="M10 6h4"></path>
+                    <path d="M10 10h4"></path>
+                    <path d="M10 6c2 1 3 3 1 5"></path>
+                    <path d="M10 16l3-6"></path>
+                  </svg>
+                  <h5 class="font-medium">Billing Details</h5>
+                </div>
+                <div class="ml-6 bg-gray-50 rounded-lg p-3">
+                  <table class="w-full text-sm">
+                    <thead class="text-muted">
+                      <tr class="border-b">
+                        <th class="text-left py-2">Description</th>
+                        <th class="text-right py-2">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${data.BillingDetails
+                                .filter(bill => bill.PatientVisitID === visit.PatientVisitID)
+                                .map(bill => `
+                          <tr class="border-b">
+                            <td class="py-2">${bill.FeeDescription}</td>
+                            <td class="py-2 text-right">₹${bill.Amount}</td>
+                          </tr>
+                        `).join('')}
+                      <tr class="font-medium">
+                        <td class="py-2">Total</td>
+                        <td class="py-2 text-right text-blue-600">₹${totalBilling}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `;
+                        visitsSection.appendChild(visitCard);
+                    });
+
+                    // Load potential Risks
+                    potentialRisks(data);
+
+                    // Load test results
+                    testResults.innerHTML = "";
+
+                    // Group test results by InvestigationName
+                    const testMap = new Map();
+                    if (data.Summary) {
+                        data.Summary.forEach((test) => {
+					     	// Skip tests where Value is 'Nil' 
+						    if (test.Value === "Nil") return;
+                            if (!testMap.has(test.InvestigationName)) {
+                                testMap.set(test.InvestigationName, {
+                                    InvestigationName: test.InvestigationName,
+                                    VisitDate: new Date(test.VisitDate).toLocaleDateString(),
+                                    VisitNumber: test.VisitNumber || "N/A",
+                                    IsAbnormal: test.IsAbnormal || "N",
+                                    Condition: test.Condition || "N/A",
+                                    Value: test.Value || "N/A",
+                                    UOMCode: test.UOMCode || "",
+                                    RegisteringLocation: test.RegisteringLocation || "N/A",
+                                    ProcessingLocation: test.ProcessingLocation || "N/A",
+                                });
+                            }
+                        });
+                    }
+
+                    // Generate test results UI
+                    [...testMap.values()].forEach((test) => {
+                        const testCard = document.createElement("div");
+                        testCard.className = "card p-5";
+                        testCard.innerHTML = `
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h4 class="font-medium">${test.InvestigationName}</h4>
+                <p class="text-sm text-muted">Visit Date: ${test.VisitDate} | Visit #: ${test.VisitNumber}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm text-muted">Status</p>
+                  <p class="badge ${test.IsAbnormal === "Y" ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                    ${test.IsAbnormal === "Y" ? "Abnormal" : "Normal"}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm text-muted">Value</p>
+                  <p class="font-medium">${test.Value} ${test.UOMCode}</p>
+                </div>
+              </div>
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                    <path d="M22 22H2"></path>
+                    <path d="M17 22V6l-5-4-5 4v16"></path>
+                    <path d="M8 10H6"></path>
+                    <path d="M8 14H6"></path>
+                    <path d="M8 18H6"></path>
+                    <path d="M18 10h-2"></path>
+                    <path d="M18 14h-2"></path>
+                    <path d="M18 18h-2"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm text-muted">Registering Location</p>
+                  <p class="font-medium">${test.RegisteringLocation}</p>
+                </div>
+              </div>
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-cyan-50 flex items-center justify-center mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2">
+                    <path d="M10 22H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"></path>
+                    <path d="m18 22 4-4a1 1 0 0 0 0-1.41L13.41 8a1 1 0 0 0-1.41 0L10 10v4.59a2 2 0 0 0 .59 1.41L18 22Z"></path>
+                    <path d="m18 10 4 4"></path>
+                    <path d="m2 22 5-5"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm text-muted">Processing Location</p>
+                  <p class="font-medium">${test.ProcessingLocation}</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t">
+              <p class="text-sm text-muted">Condition: <span class="font-medium">${test.Condition}</span></p>
+            </div>
+          `;
+                        testResults.appendChild(testCard);
+                    });
+
+                    setupCharts(data);
+                }
+            }
+            catch (error) {
+                showAlert("Error loading data: " + error.message);
+                console.error("Data loading error:", error);
+            }
+
+        }
+      // Set up all charts
+      function setupCharts(data) {
+      // Destroy existing charts to prevent duplicates
+        Object.entries(chartInstances).forEach(([key, chart]) => {
+          if (chart) {
+            chart.destroy();
+            chartInstances[key] = null;
+          }
+        });
+
+        setupBillingChart(data);
+        setupBillingTrendChart(data);
+        setupVisitTimelineChart(data);
+        setupTestDistributionChart(data);
+      }
+
+        // Billing distribution chart
+        function setupBillingChart(data) {
+        const ctx = document.getElementById('billing-chart').getContext('2d');
+        const uniqueServices = [...new Set(data.BillingDetails.map(b => b.FeeDescription))];
+        const serviceAmounts = uniqueServices.map(service =>
+          data.BillingDetails
+            .filter(b => b.FeeDescription === service)
+            .reduce((sum, b) => sum + b.Amount, 0)
+        );
+        
+        chartInstances.billingChart = new Chart(ctx, {
+          type: 'polarArea',
+          data: {
+            labels: uniqueServices,
+            datasets: [{
+              data: serviceAmounts,
+              backgroundColor: [
+                    "#0072ff", "#abe305", "#e809c7", "#f59e0b", "#ef4444", "#6366f1", "#0ea5e9", "#22c55e",
+                    "#9333ea", "#f97316", "#873d87", "#4f46e5", "#14b8a6", "#db2777", "#eab308", "#3b82f6",
+                    "#16a34a", "#c026d3", "#d97706", "#b91c1c", "#ff4081", "#00838f", "#ffb300", "#4caf50",
+                    "#9c27b0", "#ff5722", "#00bcd4", "#ffeb3b", "#6d4c41", "#1de9b6", "#64dd17", "#455a64",
+                    "#ff1493", "#32cd32", "#ff4500", "#ffa07a", "#20b2aa", "#9400d3", "#cd5c5c", "#ffa500"
+              ],
+              borderWidth: 2,
+              borderColor: '#fff',
+			  borderRadius: 4,
+            }],
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { r: { ticks: { color: '#708090', callback: value => `₹ ${value.toLocaleString()}` } }, x: { grid: { display: false }, title: { display: true, text: 'No of Tests',  color: '#708090' }, ticks: { color: '#708090', callback: (value, index) => index + 1 } } },
+              plugins: {
+                  legend: { position: 'right', labels: {color: '#708090', boxWidth: 12, padding: 8 } },
+				  tooltip: { callbacks: { label: tooltipItem => `₹ ${tooltipItem.raw.toLocaleString()}` } }
+              }
+           }
+        });
+      }
+        // Test distribution chart
+        function setupTestDistributionChart(data) {
+            const ctx = document.getElementById('test-distribution').getContext('2d');
+            const testCounts = data.OrderedTests.reduce((acc, test) => {
+                acc[test.ORDNAME] = (acc[test.ORDNAME] || 0) + 1;
+                return acc;
+            }, {});
+
+
+
+
+            chartInstances.testDistribution = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(testCounts),
+                    datasets: [{
+                        label: 'Tests Count',
+                        data: Object.values(testCounts),
+                        backgroundColor: [
+                            "#0072ff", "#abe305", "#e809c7", "#f59e0b", "#ef4444", "#6366f1", "#0ea5e9", "#22c55e",
+                            "#9333ea", "#f97316", "#873d87", "#4f46e5", "#14b8a6", "#db2777", "#eab308", "#3b82f6",
+                            "#16a34a", "#c026d3", "#d97706", "#b91c1c", "#ff4081", "#00838f", "#ffb300", "#4caf50",
+                            "#9c27b0", "#ff5722", "#00bcd4", "#ffeb3b", "#6d4c41", "#1de9b6", "#64dd17", "#455a64",
+                            "#ff1493", "#32cd32", "#ff4500", "#ffa07a", "#20b2aa", "#9400d3", "#cd5c5c", "#ffa500"
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                        borderRadius: 4,
+
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '50%',
+                    scales: { x: { grid: { display: false }, title: { display: true, text: 'No of Tests', color: '#708090' }, ticks: {  color: '#708090', callback: (value, index) => index + 1 } } },
+                    plugins: {
+                        legend: { position: 'left', labels: { color: '#708090', boxWidth: 12, padding: 8 } }
+                    }
+                }
+            });
+        }
+        //Visit timeline chart
+        function setupVisitTimelineChart(data) {
+        const ctx = document.getElementById('visit-timeline').getContext('2d');
+        chartInstances.visitTimeline = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.PatientVisits.map(v => new Date(v.VisitDate).toLocaleDateString()),
+            datasets: [{
+                label: 'Visits',
+                data: data.PatientVisits.map((_, i) => i + 1),
+                backgroundColor: 'rgba(52, 211, 153, 0.6)', 
+                borderColor: '#34d399',
+                borderWidth: 1, 
+                borderRadius: 5, 
+                hoverBackgroundColor: '#34d399',
+                hoverBorderColor: '#2ca089'
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                  y: { beginAtZero: true, title: { display: true, text: 'No of Visits', color: '#708090' }, ticks: { stepSize: 1, color: '#708090' } },
+                  x: { grid: { display: false }, ticks: { color: '#708090' } }
+            },
+            plugins: { 
+			     legend: { display: true, labels: { color: '#708090' } } 
+			}
+          }
+        });
+      }
+        //Cost trend chart
+        function setupBillingTrendChart(data) {
+            const ctx = document.getElementById('billing-trend').getContext('2d');
+            const visitDates = data.PatientVisits.map(v => new Date(v.VisitDate));
+            const visitCosts = data.PatientVisits.map(visit =>
+                data.BillingDetails
+                    .filter(bill => bill.PatientVisitID === visit.PatientVisitID)
+                    .reduce((sum, bill) => sum + bill.Amount, 0)
+            );
+
+            chartInstances.billingTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: visitDates.map(d => d.toLocaleDateString()),
+                    datasets: [{
+                        label: 'Visit Cost',
+                        data: visitCosts,
+                        borderColor: '#1a73e8',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                        borderWidth: 1,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#1a73e8',
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Cost (₹)', color: '#708090' }, ticks: { color: '#708090', callback: value => `₹ ${value.toLocaleString()}` } },
+                        x: { grid: { display: false }, ticks: { color: '#708090' } }
+                    },
+                    plugins: { 
+					    legend: { display: true, labels: { color: '#708090' } }, 
+					    tooltip: { callbacks: { label: tooltipItem => `₹ ${tooltipItem.raw.toLocaleString()}` } }
+					}
+                }
+            });
+        }
+    
+       // Toggle visit card details
+       function toggleVisitCard(element) {
+        const details = element.nextElementSibling;
+        const chevron = element.querySelector('.visit-chevron');
+        if (details.classList.contains('hidden')) {
+          details.classList.remove('hidden');
+          chevron.innerHTML = '<path d="m18 15-6-6-6 6"></path>';
+        } else {
+          details.classList.add('hidden');
+          chevron.innerHTML = '<path d="m6 9 6 6 6-6"></path>';
+        }
+      }
+
+       // Event listeners
+      document.addEventListener('DOMContentLoaded', function() {
+        fetchDataBtn.addEventListener('click', fetchData);
+        syncDataBtn.addEventListener('click', syncData);
+        patientIdInput.addEventListener('keyup', function(event) {
+          if (event.key === 'Enter') fetchData();
+        });
+      });
+
+      window.toggleVisitCard = toggleVisitCard;
+      
+     // Potential Risks
+        function potentialRisks(data) {
+            const riskList = document.getElementById("potential-risks-list");
+            riskList.innerHTML = "";
+
+            // Extract health conditions dynamically
+            let healthConditions = [];
+            if (data.HealthConditions?.length > 0) {
+                const conditionStr = data.HealthConditions[0].CONDITION;
+                if (conditionStr) {
+                    healthConditions = conditionStr.split(",").map(item => item.trim());
+                }
+            }
+
+            // Analyze abnormal results dynamically with more details
+            let abnormalResults = [];
+            if (data.Results && Array.isArray(data.Results)) {
+                abnormalResults = data.Results
+                    .filter(item => item.IsAbnormal !== "N" && item.CONDITION)
+                    .map(item => ({
+                        condition: item.CONDITION,
+                        investigation: item.InvestigationName,
+                        abnormality: item.IsAbnormal === "A" ? "Abnormal" : "Low",
+                        date: item.PVDate
+                    }));
+            }
+
+            // Extract additional dynamic data
+            const patientName = data.PatientDemographics?.[0]?.PNAME || "Unknown Patient";
+            const patientAge = data.PatientDemographics?.[0]?.Age || "Unknown Age";
+            const patientGender = data.PatientDemographics?.[0]?.SEX === "M" ? "Male" : "Female" || "Unknown";
+            const totalAmount = data.VisitPatern?.[0]?.TotalAmount || 0;
+            const visitCount = data.VisitPatern?.[0]?.TotalVisits || 0;
+            const lastVisitDate = data.VisitPatern?.[0]?.LastVisitDate
+                ? new Date(data.VisitPatern[0].LastVisitDate).toLocaleDateString()
+                : "Unknown";
+
+            // Combine and deduplicate risks dynamically with more details
+            const riskData = Array.from(new Set([...healthConditions, ...abnormalResults.map(r => r.condition)]))
+                .map(risk => {
+                    const relatedResults = abnormalResults.filter(r => r.condition === risk);
+                    const relatedBilling = data.BillingDetails?.filter(b =>
+                        relatedResults.some(r => r.investigation === b.FeeDescription)) || [];
+                    const relatedTests = data.OrderedTests?.filter(t =>
+                        relatedResults.some(r => r.investigation === t.ORDNAME)) || [];
+                    const summaryData = data.Summary?.filter(s =>
+                        relatedResults.some(r => r.investigation === s.InvestigationName)) || [];
+
+                    return {
+                        name: risk,
+                        tests: relatedResults.length > 0
+                            ? relatedResults.map(r => ({
+                                name: r.investigation,
+                                status: r.abnormality,
+                                date: new Date(r.date).toLocaleDateString()
+                            }))
+                            : [],
+                        source: healthConditions.includes(risk) ? "Reported Condition" : "Test Result",
+                        lastTested: relatedResults.length > 0
+                            ? new Date(Math.max(...relatedResults.map(r => new Date(r.date)))).toLocaleDateString()
+                            : "N/A",
+                        totalCost: relatedBilling.reduce((sum, b) => sum + (b.Amount || 0), 0).toFixed(2),
+                        testFrequency: relatedTests.length,
+                        latestValue: summaryData.length > 0 ? summaryData[0].Value : "N/A",
+                        latestUnit: summaryData.length > 0 ? summaryData[0].UOMCode : "",
+                        approvalDate: summaryData.length > 0
+                            ? new Date(summaryData[0].ApprovedAt).toLocaleDateString()
+                            : "N/A"
+                    };
+                });
+
+            // Render risk items with professional design
+            riskData.forEach((risk, index) => {
+                const listItem = document.createElement("li");
+                listItem.className = "p-4 rounded-lg shadow-md mb-6 hover:shadow-lg transition-shadow relative cursor-pointer";
+
+                const badgeColor = risk.tests.length > 0 ? "bg-red-500 text-white" : "bg-yellow-500 text-white";
+                const badgeIcon = risk.tests.length > 0 ? "fa-exclamation-circle" : "fa-question-circle";
+
+                const testDetails = risk.tests.length > 0
+                    ? `<div class="mt-2">
+            <p class="text-sm font-semibold text-gray-700 flex items-center">
+                <i class="fa fa-vial mr-2 text-blue-500"></i> Related Tests :
+            </p>
+            <ul class="list-disc list-inside text-sm text-gray-600">
+                ${risk.tests.map(test => `
+                    <li>${test.name} 
+                        <span class="text-xs ${test.status === 'Abnormal' ? 'text-red-600' : 'text-yellow-600'}">
+                            (${test.status})
+                        </span> 
+                        - Tested on ${test.date}
+                    </li>`).join('')}
+            </ul>
+        </div>` : "";
+
+                const additionalDetails = risk.latestValue !== "N/A"
+                    ? `<div class="mt-2 text-sm text-gray-600">
+                <p class="flex items-center">
+                    <i class="fa fa-flask mr-2 text-purple-500"></i> 
+                    Latest Result: ${risk.latestValue} ${risk.latestUnit}
+                </p>
+                <p class="flex items-center">
+                    <i class="fa fa-check-square mr-2 text-teal-500"></i> 
+                    Approved Date: ${risk.approvalDate}
+                </p>
+            </div>` : "";
+
+                listItem.innerHTML = `
+        <div class="flex justify-between items-start relative">
+            <div>
+                <h3 class="text-lg font-semibold flex items-center">
+                    <i class="fa fa-heartbeat mr-2 text-red-500"></i> ${risk.name}
+                </h3>
+                <p class="text-sm text-gray-600 flex items-center">
+                    <i class="fa fa-info-circle mr-2 text-blue-400"></i> Source: ${risk.source}
+                </p>
+                <p class="text-sm text-gray-600 flex items-center">
+                    <i class="fa fa-calendar-alt mr-2 text-green-400"></i> Last Tested: ${risk.lastTested}
+                </p>
+
+                <!-- Collapsible content -->
+                <div id="toggle-details-${index}" class="mt-2 hidden">
+                    ${testDetails}
+                    ${additionalDetails}
+                </div>
+            </div>
+
+            <span class="badge ${badgeColor} px-3 py-1 rounded-full text-sm font-medium flex items-center ml-4 mt-1">
+                <i class="fa ${badgeIcon} mr-1"></i> 
+                ${risk.tests.length > 0 ? "Confirmed" : "Potential"}
+            </span>
+
+            <!-- Grip icon at bottom center -->
+            <div class="absolute bottom-0 translate-y-5 left-1/2 transform -translate-x-1/2 opacity-30 hover:opacity-80 transition-opacity duration-300">
+                <div class="w-8 h-8 text-2xl flex justify-center items-center transition-transform duration-300 grip-icon rotate-90">⠿</div>
+            </div>
+        </div>
+    `;
+
+                riskList.appendChild(listItem);
+
+                // Add click event to toggle details and animate grip icon
+                listItem.addEventListener('click', function () {
+                    const detailsSection = document.getElementById(`toggle-details-${index}`);
+                    const gripIcon = listItem.querySelector('.grip-icon');
+
+                    const isHidden = detailsSection.classList.contains('hidden');
+
+                    detailsSection.classList.toggle('hidden', !isHidden);
+                    gripIcon.classList.toggle('scale-110', isHidden);
+                });
+            });
+            // Add no-risks message if applicable
+            if (riskData.length === 0) {
+                const listItem = document.createElement("li");
+                listItem.className = "p-4 rounded-lg shadow-md text-gray-500 text-center";
+                listItem.innerHTML = `
+        <div class="flex justify-center items-center">
+            <i class="fa fa-check-circle mr-2 text-green-500"></i>
+            <span>No significant risks identified from available data.</span>
+        </div>
+    `;
+                riskList.appendChild(listItem);
+            }
+        }
+  </script>
+  <script>
+      // IndexedDB Management Functions
+      async function openIndexedDB() {
+          return new Promise((resolve, reject) => {
+              const request = indexedDB.open("PatientDashboardDB", 2);
+
+              request.onupgradeneeded = function (event) {
+                  const db = event.target.result;
+                  if (!db.objectStoreNames.contains('patients')) {
+                      db.createObjectStore('patients', { keyPath: 'id' });
+                  }
+              };
+
+              request.onsuccess = function (event) {
+                  resolve(event.target.result);
+              };
+
+              request.onerror = function (e) {
+                  console.error("IndexedDB open failed:", e);
+                  reject(e);
+              };
+          });
+      }
+
+      async function updateStorageQuota() {
+          if (!navigator.storage || !navigator.storage.estimate) {
+              showAlert("Storage quota API not supported in this browser.");
+              document.getElementById('usedStorage').textContent = 'N/A';
+              document.getElementById('totalQuota').textContent = 'N/A';
+              document.getElementById('remainingStorage').textContent = 'N/A';
+              document.getElementById('storageProgress').style.width = '0%';
+              return;
+          }
+
+          try {
+              const estimate = await navigator.storage.estimate();
+              const used = estimate.usage || 0;
+              const quota = estimate.quota || 0;
+
+              // Convert bytes to human-readable format
+              const formatBytes = (bytes) => {
+                  if (bytes === 0) return '0 Bytes';
+                  const k = 1024;
+                  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                  const i = Math.floor(Math.log(bytes) / Math.log(k));
+                  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+              };
+
+              const usedStorage = formatBytes(used);
+              const totalQuota = formatBytes(quota);
+              const remainingStorage = formatBytes(quota - used);
+              const usagePercentage = quota > 0 ? ((used / quota) * 100).toFixed(2) : 0;
+
+              document.getElementById('usedStorage').textContent = usedStorage;
+              document.getElementById('totalQuota').textContent = totalQuota;
+              document.getElementById('remainingStorage').textContent = remainingStorage;
+              document.getElementById('storageProgress').style.width = `${usagePercentage}%`;
+          } catch (error) {
+              showAlert("Error fetching storage quota: " + error.message);
+              document.getElementById('usedStorage').textContent = 'Error';
+              document.getElementById('totalQuota').textContent = 'Error';
+              document.getElementById('remainingStorage').textContent = 'Error';
+              document.getElementById('storageProgress').style.width = '0%';
+          }
+      }
+
+      async function loadDBRecords() {
+          const dbRecords = document.getElementById('dbRecords');
+          const noRecords = document.getElementById('noRecords');
+          dbRecords.innerHTML = '';
+
+          // Update storage quota
+          await updateStorageQuota();
+
+          try {
+              const db = await openIndexedDB();
+              const transaction = db.transaction(['patients'], 'readonly');
+              const store = transaction.objectStore('patients');
+              const request = store.getAllKeys();
+			  let Records = 0;
+              request.onsuccess = function (event) {
+                  const keys = event.target.result;
+                  if (keys.length === 0) {
+                      noRecords.classList.remove('hidden');
+                      db.close();
+                      return;
+                  }
+                  noRecords.classList.add('hidden');
+                  keys.forEach(async (key) => {
+                      const recordRequest = store.get(key);
+                      recordRequest.onsuccess = function (e) {
+                          const record = e.target.result;
+                          if (record) {
+                              const compressedData = new Uint8Array(record.data);
+                              const decompressed = pako.inflate(new Uint8Array(record.data), { to: 'string' });
+                              const data = JSON.parse(decompressed);
+                              const patientName = data.PatientDemographics?.[0]?.PNAME || 'Unknown';
+
+                              // Calculate record size (compressed data size)
+                              const recordSize = compressedData.length;
+                              const formatBytes = (bytes) => {
+                                  if (bytes === 0) return '0 Bytes';
+                                  const k = 1024;
+                                  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                                  const i = Math.floor(Math.log(bytes) / Math.log(k));
+                                  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                              };
+                              const storage_quota = formatBytes(recordSize);
+							  
+                              Records++;
+                              document.getElementById('TotalRecords').textContent = Records;
+							  
+                              const recordEl = document.createElement('div');
+                              recordEl.className = 'flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
+                              recordEl.innerHTML = `
+                            <div>
+                                <p class="font-medium text-gray-900 dark:text-white">Patient ID: ${key}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Name: ${patientName}</p>
+                                <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">Storage: ${storage_quota}</p>
+                            </div>
+                            <button class="btn btn-danger btn-sm delete-record" data-id="${key}">
+                                <i class="fa fa-trash"></i>
+                                Delete
+                            </button>
+                        `;
+                              dbRecords.appendChild(recordEl);
+                          }
+                      };
+                  });
+                  
+                  transaction.oncomplete = function () {
+                      db.close();
+                  };
+              };
+
+              request.onerror = function (e) {
+                  showAlert("Error loading records: " + e.target.error);
+              };
+          } catch (error) {
+              showAlert("Error accessing IndexedDB: " + error.message);
+          }
+      }
+
+      async function deleteRecord(patientId) {
+          try {
+              const db = await openIndexedDB();
+              const transaction = db.transaction(['patients'], 'readwrite');
+              const store = transaction.objectStore('patients');
+              const request = store.delete(patientId);
+
+              request.onsuccess = function () {
+                  showAlert("Record deleted successfully!", ALERT_TYPES.SUCCESS);
+                  loadDBRecords(); // Reload records and update quota
+              };
+
+              request.onerror = function (e) {
+                  showAlert("Error deleting record: " + e.target.error);
+              };
+
+              transaction.oncomplete = function () {
+                  db.close();
+              };
+          } catch (error) {
+              showAlert("Error accessing IndexedDB: " + error.message);
+          }
+      }
+
+      async function clearAllRecords() {
+          if (!confirm("Are you sure you want to delete all records? This action cannot be undone.")) return;
+
+          try {
+              const db = await openIndexedDB();
+              const transaction = db.transaction(['patients'], 'readwrite');
+              const store = transaction.objectStore('patients');
+              const request = store.clear();
+
+              request.onsuccess = function () {
+                  showAlert("All records cleared successfully!", ALERT_TYPES.SUCCESS);
+                  loadDBRecords(); // Reload records and update quota
+              };
+
+              request.onerror = function (e) {
+                  showAlert("Error clearing records: " + e.target.error);
+              };
+
+              transaction.oncomplete = function () {
+                  db.close();
+              };
+          } catch (error) {
+              showAlert("Error accessing IndexedDB: " + error.message);
+          }
+      }
+
+      // Modal Event Listeners
+      document.addEventListener('DOMContentLoaded', function () {
+          const modal = document.getElementById('indexedDBModal');
+          const openModalBtn = document.getElementById('manageIndexedDB');
+          const closeModalBtn = document.getElementById('closeModal');
+          const closeModalBtn2 = document.getElementById('closeModalBtn');
+
+          openModalBtn.addEventListener('click', () => {
+              modal.classList.remove('hidden');
+              loadDBRecords();
+          });
+
+          closeModalBtn.addEventListener('click', () => {
+              modal.classList.add('hidden');
+          });
+
+          closeModalBtn2.addEventListener('click', () => {
+              modal.classList.add('hidden');
+          });
+
+          // Handle delete button clicks
+          document.getElementById('dbRecords').addEventListener('click', function (e) {
+              if (e.target.closest('.delete-record')) {
+                  const patientId = e.target.closest('.delete-record').dataset.id;
+                  deleteRecord(patientId);
+              }
+          });
+
+          // Clear all records
+          document.getElementById('clearAllRecords').addEventListener('click', clearAllRecords);
+
+          // Close modal on outside click
+          modal.addEventListener('click', function (e) {
+              if (e.target === modal) {
+                  modal.classList.add('hidden');
+              }
+          });
+      });
+
+  </script>
+  </body>
+</html>

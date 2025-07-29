@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Selection Portal</title>
+  <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+  :root {
+  --primary-color: #3B82F6;
+  --primary-dark: #2563EB;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --red-50: #FEF2F2;
+  --red-300: #FCA5A5;
+  --red-500: #EF4444;
+  --red-700: #B91C1C;
+  --red-800: #991B1B;
+  --green-50: #F0FDF4;
+  --green-100: #DCFCE7;
+  --green-500: #22C55E;
+  --green-600: #16A34A;
+  --yellow-400: #FACC15;
+  --blue-100: #DBEAFE;
+  --blue-800: #1E40AF;
+  --pink-100: #FCE7F3;
+  --pink-800: #9D174D;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--gray-100);
+  color: var(--gray-800);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+header {
+  background-color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.header-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo i {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  margin-right: 0.75rem;
+}
+
+.logo h1 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--gray-800);
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.status-dot {
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  margin-right: 0.5rem;
+}
+
+.status-connecting {
+  background-color: var(--yellow-400);
+}
+
+.status-connected {
+  background-color: var(--green-500);
+}
+
+.status-error {
+  background-color: var(--red-500);
+}
+
+main {
+  flex-grow: 1;
+}
+
+.main-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.loading-spinner {
+  height: 3rem;
+  width: 3rem;
+  border-radius: 9999px;
+  border: 0.5rem solid var(--gray-200);
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state {
+  background-color: var(--red-50);
+  border-left: 4px solid var(--red-500);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.25rem;
+}
+
+.error-state-content {
+  display: flex;
+  align-items: flex-start;
+}
+
+.error-state-icon {
+  flex-shrink: 0;
+  color: var(--red-500);
+}
+
+.error-state-message {
+  margin-left: 0.75rem;
+}
+
+.error-state-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--red-800);
+}
+
+.error-state-description {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--red-700);
+}
+
+.error-state-action {
+  margin-top: 0.75rem;
+}
+
+.error-state-button {
+  background-color: white;
+  color: var(--red-700);
+  border: 1px solid var(--red-300);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.error-state-button:hover {
+  background-color: var(--red-50);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.empty-state-icon {
+  margin: 0 auto;
+  height: 5rem;
+  width: 5rem;
+  color: var(--gray-400);
+  font-size: 4rem;
+}
+
+.empty-state-title {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.empty-state-description {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+.empty-state-action {
+  margin-top: 1.5rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn i {
+  margin-right: 0.25rem;
+  margin-left: -0.25rem;
+}
+
+.mobile-form-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--gray-700);
+  background-color: white;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-button {
+  width: 100%;
+}
+
+.patient-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.patient-header {
+  border-bottom: 1px solid var(--gray-200);
+  padding: 1.5rem;
+}
+
+.patient-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.patient-subtitle {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin-top: 0.25rem;
+}
+
+.filter-bar {
+  background-color: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0.5rem 1rem;
+}
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.search-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  pointer-events: none;
+}
+
+.filter-select {
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background-color: white;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.patient-count {
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: var(--gray-50);
+}
+
+th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td {
+  padding: 1rem 1.5rem;
+  white-space: nowrap;
+  border-top: 1px solid var(--gray-200);
+}
+
+tr:hover {
+  background-color: var(--gray-50);
+}
+
+.table-text {
+  font-size: 0.875rem;
+}
+
+.table-text-primary {
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.table-text-secondary {
+  color: var(--gray-500);
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.badge-blue {
+  background-color: var(--blue-100);
+  color: var(--blue-800);
+}
+
+.badge-pink {
+  background-color: var(--pink-100);
+  color: var(--pink-800);
+}
+
+.select-btn {
+    background-color: transparent;
+    border: 1px solid #4299e1;
+    color: #4299e1;
+    padding: 0.35rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.select-btn:hover {
+    background-color: #4299e1;
+    color: white;
+}
+
+.td-right {
+  text-align: right;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.pagination-text {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  background-color: white;
+  cursor: pointer;
+}
+
+.pagination-btn:hover {
+  background-color: var(--gray-50);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn i {
+  font-size: 0.75rem;
+}
+
+.pagination-page {
+  padding: 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+}
+
+@media (max-width: 640px) {
+  .pagination {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .filter-form {
+    flex-direction: column;
+  }
+  
+  .search-container {
+    margin-bottom: 0.5rem;
+  }
+}
+
+  </style>
+  <style>
+  .theme-toggle {
+    display: flex;
+    gap: 10px;
+  }
+
+.theme-toggle a {
+    text-decoration: none;
+    font-size: 20px;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.theme-toggle a:hover {
+    color: #007bff;
+}
+
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+        <div class="logo">
+            <i class="fas fa-hospital-user"></i>
+            <h1>Patient Selection Portal</h1>
+        </div>
+        <div class="connection-status">
+            <div id="statusDot" class="status-dot status-connecting"></div>
+            <span id="statusText">Connecting to server...</span>
+        </div>
+        <div class="theme-toggle">
+            <a href="call_center_dark.html" id="darkModeToggle" title="Dark Mode">
+                <i class="fas fa-moon"></i>
+            </a>
+            <a href="call_center.html" id="lightModeToggle" title="Light Mode">
+                <i class="fas fa-sun"></i>
+            </a>
+        </div>
+    </div>
+</header>
+  <main>
+      <div class="main-container">
+          <div id="errorState" class="error-state" style="display: none;">
+              <div class="error-state-content">
+                  <div class="error-state-icon">
+                      <i class="fas fa-exclamation-circle fa-lg"></i>
+                  </div>
+                  <div class="error-state-message">
+                      <h3 class="error-state-title">Error</h3>
+                      <p class="error-state-description" id="errorMessage">Unable to retrieve patient data. Please try again.</p>
+                      <div class="error-state-action">
+                          <button id="retryButton" class="error-state-button">
+                              <i class="fas fa-redo"></i> Retry
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div id="loadingState" class="loading-state" style="display: none;">
+              <div class="loading-spinner"></div>
+              <p>Loading patients...</p>
+          </div>
+          <div id="emptyState" class="empty-state" style="display: none;">
+              <div class="empty-state-icon">
+                  <i class="fas fa-user-slash"></i>
+              </div>
+              <h3 class="empty-state-title">No patients found</h3>
+              <p class="empty-state-description">Try searching with a different mobile number or check your number.</p>
+              <div class="empty-state-action">
+                  <button id="clearSearchButton" class="btn btn-secondary">
+                      <i class="fas fa-times"></i> Clear Search
+                  </button>
+              </div>
+          </div>
+          <div id="searchContainer" class="mobile-form-container search-container">
+              <div class="row g-3 align-items-center">
+                  <div class="col-md-4">
+                      <input type="text" id="searchName" class="form-input" placeholder="Enter patient mobile number">
+                  </div>
+                  <div class="col-md-2">
+                      <button id="searchButton" class="btn btn-primary form-button">
+                          <i class="fas fa-search"></i> Search
+                      </button>
+                  </div>
+              </div>
+              <div id="patientResults" class="patient-container mt-3" style="display: none;">
+                  <div class="patient-header">
+                      <h2 class="patient-title">Patient Selection</h2>
+                      <p class="patient-subtitle">Please choose the correct patient from the list bellow</p>
+                  </div>
+
+                  <div class="filter-bar">
+                      <div class="filter-form">
+                          <div class="search-container">
+                              <i class="fas fa-search search-icon"></i>
+                              <input type="text" id="filterInput" class="search-input" placeholder="Filter results by name">
+                          </div>
+                          <select id="genderFilter" class="filter-select">
+                              <option value="all">All Genders</option>
+                              <option value="M">Male</option>
+                              <option value="F">Female</option>
+                              <option value="O">Other</option>
+                          </select>
+                      </div>
+                  </div>
+
+                  <div id="patientCount" class="patient-count">0 patients found</div>
+                  <div class="table-container">
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Patient ID</th>
+                                  <th>Name</th>
+                                  <th>Gender</th>
+                                  <th>Date of Birth</th>
+                                  <th>Age</th>
+                                  <th>Patient Number</th>
+                                  <th>Action</th>
+                              </tr>
+                          </thead>
+                          <tbody id="patientTableBody">
+                              <!-- Patient data will be populated here -->
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM Elements
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      const searchNameInput = document.getElementById('searchName');
+      const searchButton = document.getElementById('searchButton');
+      const filterInput = document.getElementById('filterInput');
+      const genderFilter = document.getElementById('genderFilter');
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      const retryButton = document.getElementById('retryButton');
+      const patientResults = document.getElementById('patientResults');
+      const patientTableBody = document.getElementById('patientTableBody');
+      const patientCount = document.getElementById('patientCount');
+      const emptyState = document.getElementById('emptyState');
+      const clearSearchButton = document.getElementById('clearSearchButton');
+
+      // State
+      let allPatients = [];
+      let filteredPatients = [];
+      let connectionStatus = 'connecting'; // 'connecting', 'connected', 'error'
+
+      // Initialize
+      initializeApp();
+
+      function initializeApp() {
+        updateConnectionStatus('connected');
+        
+        // Event Listeners
+        searchButton.addEventListener('click', handleSearch);
+        filterInput.addEventListener('input', handleFilter);
+        genderFilter.addEventListener('change', handleFilter);
+        retryButton.addEventListener('click', handleRetry);
+        clearSearchButton.addEventListener('click', handleClearSearch);
+        
+        // Allow enter key to submit search
+        searchNameInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            handleSearch();
+          }
+        });
+      }
+
+      function updateConnectionStatus(status) {
+        connectionStatus = status;
+        statusDot.className = 'status-dot';
+        
+        switch(status) {
+          case 'connecting':
+            statusDot.classList.add('status-connecting');
+            statusText.textContent = 'Connecting to server...';
+            break;
+          case 'connected':
+            statusDot.classList.add('status-connected');
+            statusText.textContent = 'Connected';
+            break;
+          case 'error':
+            statusDot.classList.add('status-error');
+            statusText.textContent = 'Connection error';
+            break;
+        }
+      }
+
+      async function handleSearch() {
+        const searchValue = searchNameInput.value.trim();
+        
+        if (!searchValue) {
+          showError('Please enter a mobile number to search.');
+          return;
+        }
+        
+        showLoading();
+        
+        try {
+          const data = await fetchPatientData(searchValue);
+          
+          if (data && data.PatientVisits && data.PatientVisits.length > 0) {
+            allPatients = data.PatientVisits;
+            filteredPatients = [...allPatients];
+            
+            updatePatientTable();
+            showPatientResults();
+          } else {
+            // No results found
+            allPatients = [];
+            filteredPatients = [];
+            
+            showPatientResults();
+            showEmptyState();
+          }
+        } catch (error) {
+          console.error('Error fetching patient data:', error);
+          showError('Failed to retrieve patient data. Please try again.');
+        }
+      }
+
+      async function fetchPatientData(searchName) {
+        try {
+          updateConnectionStatus('connecting');
+          
+          // API configuration 
+          const API_URL = 'https://blueshift.abi-health.com:3000/mobilenumber/';
+          const API_KEY = 'q1riHeoxylJy41TqzOXT75rty/yGU2e1pk+0GGFMrTUJ3fB67uIQXGzC47dvg6s3iSnczDxsK9fm+AStHt9ZDQ==';
+          
+          // Determine the URL based on whether the input is numeric (mobile number)
+          const url = searchName.match(/^\d+$/) ? `${API_URL}${searchName}` : API_URL;
+          
+          console.log(`Making API request to: ${url}`);
+          
+		 
+          // Make API call with the provided API key
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'x-api-key': API_KEY,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          updateConnectionStatus('connected');
+          
+          let data = await response.json();
+          console.log('API Response:', data);
+          
+          // Transform the API response to match the expected format
+          if (!data.PatientVisits) {
+            if (Array.isArray(data)) {
+              data = { PatientVisits: data };
+            } else {
+              data = { PatientVisits: [data] };
+            }
+          }
+          
+          return data;
+          
+        } catch (error) {
+          console.error('Error fetching patient data:', error);
+          updateConnectionStatus('error');
+          throw error;
+        }
+      }
+
+      function handleFilter() {
+        const filterValue = filterInput.value.trim().toLowerCase();
+        const genderValue = genderFilter.value;
+        
+        filteredPatients = allPatients.filter(patient => {
+          // Check if the patient object has each property before using it
+          const nameMatch = patient.PNAME ? patient.PNAME.toLowerCase().includes(filterValue) : false;
+          const genderMatch = genderValue === 'all' || (patient.SEX && patient.SEX === genderValue);
+          
+          return nameMatch && genderMatch;
+        });
+        
+        updatePatientTable();
+        
+        if (filteredPatients.length === 0) {
+          showEmptyState();
+        } else {
+          hideEmptyState();
+        }
+      }
+
+      function updatePatientTable() {
+        // Clear existing table rows
+        patientTableBody.innerHTML = '';
+        
+        // Update patient count
+        patientCount.textContent = `${filteredPatients.length} patient${filteredPatients.length !== 1 ? 's' : ''} found`;
+        
+        // Add filtered patients to table
+        filteredPatients.forEach(patient => {
+          const row = document.createElement('tr');
+          
+          // Get the properties safely with fallbacks for missing data
+          const patientId = patient.PATIENTID || 'N/A';
+          const patientName = patient.PNAME || 'N/A';
+          const patientSex = patient.SEX || 'O'; // Default to Other if not present
+          const patientDOB = patient.DOB || null;
+          const patientAge = patient.Age || 'N/A';
+          const patientNumber = patient.PatientNumber || 'N/A';
+          
+          // Format date from "1955-05-19T00:00:00.000Z" to "May 19, 1955"
+          let formattedDOB = 'N/A';
+          if (patientDOB) {
+            try {
+              const dobDate = new Date(patientDOB);
+              if (!isNaN(dobDate.getTime())) {
+                formattedDOB = dobDate.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                });
+              }
+            } catch (error) {
+              console.error('Error formatting date:', error);
+            }
+          }
+          
+          row.innerHTML = `
+            <td>
+              <span class="table-text table-text-primary">${patientId}</span>
+            </td>
+            <td>
+              <span class="table-text table-text-primary">${patientName}</span>
+            </td>
+            <td>
+              <span class="badge ${patientSex === 'M' ? 'badge-blue' : 'badge-pink'}">${patientSex === 'M' ? 'Male' : patientSex === 'F' ? 'Female' : 'Other'}</span>
+            </td>
+            <td>
+              <span class="table-text">${formattedDOB}</span>
+            </td>
+            <td>
+              <span class="table-text">${patientAge}</span>
+            </td>
+            <td>
+              <span class="table-text table-text-secondary">${patientNumber}</span>
+            </td>
+            <td class="td-right">
+              <button class="select-btn" data-patient-id="${patientId}">Select</button>
+            </td>
+          `;
+          
+          patientTableBody.appendChild(row);
+        });
+        
+        // Add event listeners to select buttons
+        document.querySelectorAll('.select-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const patientId = this.dataset.patientId;
+            handlePatientSelection(patientId);
+          });
+        });
+      }
+
+      function encryptData(data) {
+          return btoa(encodeURIComponent(data)); // Base64 encoding
+      }
+	  
+      function handlePatientSelection(patientId) {
+        const selectedPatient = allPatients.find(p => p.PATIENTID === patientId);
+        if (selectedPatient) {
+          const encryptedPatientNumber = encryptData(selectedPatient.PatientNumber);
+        if (confirm(`Patient selected: ${selectedPatient.PNAME} (Patient Number: ${selectedPatient.PatientNumber})\n\nProceed to CRM Dashboard?`)) {
+            window.open(`CRM_Call_Center_App.html?pnumber=${encryptedPatientNumber}`, '_blank');
+        }
+      }
+     }
+
+      function handleRetry() {
+        // Retry the last search
+        handleSearch();
+      }
+
+      function handleClearSearch() {
+        // Clear search input and results
+        searchNameInput.value = '';
+        filterInput.value = '';
+        genderFilter.value = 'all';
+        
+        // Reset state
+        allPatients = [];
+        filteredPatients = [];
+        
+        // Hide patient results
+        hidePatientResults();
+        hideEmptyState();
+      }
+
+      function showLoading() {
+        hideError();
+        hidePatientResults();
+        hideEmptyState();
+        loadingState.style.display = 'flex';
+      }
+
+      function hideLoading() {
+        loadingState.style.display = 'none';
+      }
+
+      function showError(message) {
+        hideLoading();
+        errorMessage.textContent = message || 'An error occurred. Please try again.';
+        errorState.style.display = 'block';
+      }
+
+      function hideError() {
+        errorState.style.display = 'none';
+      }
+
+      function showPatientResults() {
+        hideLoading();
+        hideError();
+        patientResults.style.display = 'block';
+      }
+
+      function hidePatientResults() {
+        patientResults.style.display = 'none';
+      }
+
+      function showEmptyState() {
+        emptyState.style.display = 'block';
+      }
+
+      function hideEmptyState() {
+        emptyState.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

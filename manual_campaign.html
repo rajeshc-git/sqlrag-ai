@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Healthcare Campaign System</title>
+  
+  <!-- Bootstrap CSS (Light Theme) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    /* Custom Styles */
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .card {
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+      border: none;
+    }
+    
+    .card-header {
+      border-radius: 12px 12px 0 0 !important;
+      font-weight: 600;
+    }
+    
+    .btn {
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 500;
+    }
+    
+    .btn-primary {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2563eb;
+      border-color: #2563eb;
+    }
+    
+    .btn-success {
+      background-color: #10b981;
+      border-color: #10b981;
+    }
+    
+    .btn-success:hover {
+      background-color: #059669;
+      border-color: #059669;
+    }
+    
+    .tab-menu ul {
+      padding: 0;
+      list-style: none;
+      display: flex;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .tab-menu ul li {
+      flex-grow: 1;
+      text-align: center;
+    }
+    
+    .tab-menu ul li a {
+      color: #4b5563;
+      font-weight: 600;
+      display: block;
+      padding: 16px;
+      background: #f3f4f6;
+      border: none;
+      border-bottom: 3px solid transparent;
+      text-decoration: none;
+      transition: 0.3s all;
+    }
+    
+    .tab-menu ul li a:hover {
+      background: #f9fafb;
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+    }
+
+    .tab-menu ul li a.active {
+      background: #fff;
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+      box-shadow: 0 -4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .tab-box {
+      display: none;
+      padding: 20px;
+    }
+    
+    .tab-main-box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-top: 24px;
+    }
+    
+    /* Stat Cards */
+    .stat-card {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      height: 100%;
+      transition: transform 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .stat-card.purple {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    }
+    
+    .stat-card.green {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .stat-card.orange {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .stat-card .stat-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+    
+    .stat-card .stat-title {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 5px;
+    }
+    
+    .stat-card .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .stat-card .stat-desc {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    /* Health condition tag styles */
+    .health-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-right: 4px;
+      margin-bottom: 4px;
+    }
+    
+    .health-tag-cardiovascular {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: rgb(185, 28, 28);
+    }
+    
+    .health-tag-diabetes {
+      background-color: rgba(59, 130, 246, 0.15);
+      color: rgb(29, 78, 216);
+    }
+    
+    .health-tag-thyroid {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: rgb(4, 120, 87);
+    }
+    
+    .health-tag-blood {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: rgb(180, 83, 9);
+    }
+    
+    .health-tag-vitamin {
+      background-color: rgba(139, 92, 246, 0.15);
+      color: rgb(91, 33, 182);
+    }
+    
+    .health-tag-default {
+      background-color: rgba(107, 114, 128, 0.15);
+      color: rgb(55, 65, 81);
+    }
+    
+    /* Patient cards */
+    .patient-card {
+      border-radius: 12px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    
+    .patient-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    .patient-card .card-header {
+      padding: 16px;
+    }
+    
+    .patient-card .patient-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      background-color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #6b7280;
+    }
+    
+    /* Campaign Template Cards */
+    .template-card {
+      border-radius: 12px;
+      transition: transform 0.3s;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    
+    .template-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .template-card.selected {
+      border: 2px solid #3b82f6;
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+    }
+    
+    .loading-box {
+      background-color: white;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      max-width: 320px;
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #3b82f6;
+      width: 50px;
+      height: 50px;
+      margin: 0 auto 20px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Custom Checkboxes */
+    .custom-checkbox .form-check-input {
+      width: 20px;
+      height: 20px;
+      margin-top: 0.25rem;
+    }
+    
+    .custom-checkbox .form-check-input:checked {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+    }
+    
+    /* Table Styles */
+    .table-responsive {
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .table {
+      margin-bottom: 0;
+    }
+    
+    .table thead th {
+      background-color: #f3f4f6;
+      font-weight: 600;
+      border-bottom: none;
+      padding: 12px 16px;
+    }
+    
+    .table tbody td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+    
+    /* Avatar */
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #6b7280;
+    }
+    
+    /* Advanced campaign features */
+    .campaign-schedule {
+      background-color: #f3f4f6;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    
+    .template-preview {
+      background-color: #f9fafb;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px dashed #d1d5db;
+    }
+    
+    /* Sample patients horizontal scroll */
+    .sample-patients-scroll {
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 10px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .sample-patients-scroll .card {
+      display: inline-block;
+      width: 300px;
+      margin-right: 16px;
+      white-space: normal;
+      vertical-align: top;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .tab-menu ul {
+        flex-wrap: wrap;
+      }
+      
+      .tab-menu ul li {
+        flex-basis: 50%;
+      }
+      
+      .tab-menu ul li a {
+        padding: 12px;
+        font-size: 14px;
+      }
+      
+      .stat-card {
+        margin-bottom: 16px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .tab-menu ul li {
+        flex-basis: 100%;
+      }
+    }
+  </style>
+  <style>
+  .error-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.error-popup.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.error-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 500px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+}
+
+.error-popup.active .error-content {
+  transform: translateY(0);
+}
+
+.error-header {
+  display: flex;
+  align-items: center;
+  color: #dc3545;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.error-message {
+  color: #333;
+  margin-bottom: 15px;
+}
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay d-none">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p class="mb-0 fw-bold" id="loadingMessage">Loading...</p>
+    </div>
+  </div>
+
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center bg-white py-3 border-bottom border-primary border-3">
+        <div class="d-flex align-items-center">
+          <div class="bg-primary text-white p-3 rounded-circle me-3">
+            <i class="bi bi-heart-pulse fs-2"></i>
+          </div>
+          <div>
+            <h3 class="mb-0 fw-bold text-primary">Healthcare Campaign System</h3>
+            <div class="text-muted small">Patient follow-up management</div>
+          </div>
+        </div>
+        <div>
+          <span class="badge bg-primary text-white px-3 py-2 fw-normal">
+            <i class="bi bi-person-circle me-1"></i> Admin Dashboard
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+      <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+        <div class="stat-card">
+          <i class="bi bi-people stat-icon"></i>
+          <div class="stat-title">TOTAL PATIENTS</div>
+          <div class="stat-value" id="totalPatientsCount">0</div>
+          <div class="stat-desc">Available in database</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+        <div class="stat-card purple">
+          <i class="bi bi-check-circle stat-icon"></i>
+          <div class="stat-title">SELECTED PATIENTS</div>
+          <div class="stat-value" id="selectedPatientsCount">0</div>
+          <div class="stat-desc">Selected for campaign</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+        <div class="stat-card green">
+          <i class="bi bi-graph-up stat-icon"></i>
+          <div class="stat-title">CAMPAIGNS SENT</div>
+          <div class="stat-value" id="campaignsSentCount">5</div>
+          <div class="stat-desc">In the last 30 days</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card orange">
+          <i class="bi bi-heart stat-icon"></i>
+          <div class="stat-title">CONDITIONS TRACKED</div>
+          <div class="stat-value" id="filteredConditionsCount">0</div>
+          <div class="stat-desc">In current campaign</div>
+        </div>
+      </div>
+    </div>
+	 <!--Show Error Popup-->
+	<div class="error-popup" id="errorPopup">
+      <div class="error-content">
+       <div class="error-header">
+         <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span>Error</span>
+       </div>
+       <div class="error-message" id="errorMessage"></div>
+       <button class="btn btn-sm btn-danger mt-3" onclick="hideError()">Close</button>
+     </div>
+    </div>
+    <!-- Main Tab Navigation -->
+    <div class="tab-teaser">
+      <div class="tab-menu">
+        <ul>
+          <li><a href="#" class="active" data-rel="tab1">
+            <i class="bi bi-search me-2"></i> Find Patients
+          </a></li>
+          <li><a href="#" data-rel="tab2">
+            <i class="bi bi-filter me-2"></i> Health Filters
+          </a></li>
+          <li><a href="#" data-rel="tab3">
+            <i class="bi bi-people me-2"></i> Demographics
+          </a></li>
+          <li><a href="#" data-rel="tab4">
+            <i class="bi bi-send me-2"></i> Campaign Setup
+          </a></li>
+          <li><a href="#" data-rel="tab5">
+            <i class="bi bi-list-check me-2"></i> Patient List
+          </a></li>
+          <li><a href="#" data-rel="tab6">
+            <i class="bi bi-graph-up me-2"></i> Analytics
+          </a></li>
+        </ul>
+      </div>
+      <div class="tab-main-box">
+        <!-- Tab 1: Find Patients -->
+        <div id="tab1" class="tab-box" style="display: block;">
+          <div class="row">
+            <div class="col-md-6 mb-4 mb-md-0">
+              <div class="card h-100">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-search me-2"></i> Find Patient</h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label for="patientNumber" class="form-label fw-bold">Patient Number</label>
+                    <div class="input-group">
+                      <input type="text" id="patientNumber" class="form-control" placeholder="Enter patient number (e.g. OHPS0AEU754764)">
+                      <button id="searchPatient" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Search
+                      </button>
+                    </div>
+                    <div id="searchStatus" class="form-text text-danger mt-2 d-none"></div>
+                  </div>
+                  <div class="text-center mb-3">
+                    <div class="text-muted small">- OR -</div>
+                  </div>
+                  <button id="loadSampleDataBtn" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-database me-1"></i> Load Bulk Patient Data
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i> Recent Campaigns</h5>
+                </div>
+                <div class="card-body p-0">
+                  <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action py-3">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-1">Diabetes Follow-up</h6>
+                        <span class="badge bg-success">Sent</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">120 patients • SMS, Email</small>
+                        <small class="text-muted">2 days ago</small>
+                      </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action py-3">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-1">Cardiovascular Awareness</h6>
+                        <span class="badge bg-success">Sent</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">85 patients • SMS</small>
+                        <small class="text-muted">5 days ago</small>
+                      </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action py-3">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-1">Vitamin Deficiency Campaign</h6>
+                        <span class="badge bg-success">Sent</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">65 patients • Email</small>
+                        <small class="text-muted">1 week ago</small>
+                      </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action py-3">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-1">Annual Check-up Reminder</h6>
+                        <span class="badge bg-success">Sent</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">210 patients • SMS, Email</small>
+                        <small class="text-muted">2 weeks ago</small>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tab 2: Health Filters -->
+        <div id="tab2" class="tab-box">
+          <div class="card">
+            <div class="card-header bg-white">
+              <h5 class="card-title mb-0"><i class="bi bi-heart-pulse me-2"></i> Filter By Health Conditions</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-4">
+                    <label class="form-label fw-bold">Common Health Conditions</label>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-diabetes" value="Diabetes">
+                      <label class="form-check-label" for="condition-diabetes">Diabetes</label>
+                    </div>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-hypertension" value="Hypertension">
+                      <label class="form-check-label" for="condition-hypertension">Hypertension</label>
+                    </div>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-cardiovascular" value="Cardiovascular Disease">
+                      <label class="form-check-label" for="condition-cardiovascular">Cardiovascular Disease</label>
+                    </div>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-thyroid" value="Thyroid Disorders">
+                      <label class="form-check-label" for="condition-thyroid">Thyroid Disorders</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-4">
+                    <label class="form-label fw-bold">Additional Conditions</label>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-blood" value="Blood Disorders">
+                      <label class="form-check-label" for="condition-blood">Blood Disorders</label>
+                    </div>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-vitamin" value="Vitamin Deficiency">
+                      <label class="form-check-label" for="condition-vitamin">Vitamin Deficiency</label>
+                    </div>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-kidney" value="Kidney Disease">
+                      <label class="form-check-label" for="condition-kidney">Kidney Disease</label>
+                    </div>
+                    <div class="custom-checkbox form-check mb-2">
+                      <input class="form-check-input conditionFilter" type="checkbox" id="condition-liver" value="Liver Disease">
+                      <label class="form-check-label" for="condition-liver">Liver Disease</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <div class="card">
+                    <div class="card-header bg-light">
+                      <h6 class="mb-0">Test Results & Diagnostics</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Test Name</label>
+                            <select class="form-select" id="testNameFilter">
+                              <option value="">Select Test</option>
+                              <option value="Complete Blood Count">Complete Blood Count</option>
+                              <option value="Blood Glucose">Blood Glucose</option>
+                              <option value="Lipid Profile">Lipid Profile</option>
+                              <option value="Thyroid function test">Thyroid function test</option>
+                              <option value="Liver Function Test">Liver Function Test</option>
+                              <option value="Kidney Function Test">Kidney Function Test</option>
+                              <option value="Vitamin D">Vitamin D (25 OH Cholecalciferol)</option>
+                              <option value="Vitamin B12">Vitamin B12</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Abnormal Results</label>
+                            <select class="form-select" id="abnormalResultsFilter">
+                              <option value="">All Results</option>
+                              <option value="Y">Abnormal Results Only</option>
+                              <option value="N">Normal Results Only</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="d-flex justify-content-between mt-4">
+                    <button id="applyFilters" class="btn btn-primary">
+                      <i class="bi bi-funnel me-1"></i> Apply Filters
+                    </button>
+                    <button id="resetFilters" class="btn btn-outline-secondary">
+                      <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tab 3: Demographics -->
+        <div id="tab3" class="tab-box">
+          <div class="card">
+            <div class="card-header bg-white">
+              <h5 class="card-title mb-0"><i class="bi bi-people me-2"></i> Demographics & Location</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="locationFilter" class="form-label fw-bold">Location</label>
+                    <select id="locationFilter" class="form-select">
+                      <option value="">All Locations</option>
+                      <option value="Mumbai">Mumbai</option>
+                      <option value="Delhi">Delhi</option>
+                      <option value="Bangalore">Bangalore</option>
+                      <option value="Chennai">Chennai</option>
+                      <option value="Hyderabad">Hyderabad</option>
+                      <option value="Kolkata">Kolkata</option>
+                      <option value="Pune">Pune</option>
+                      <option value="Ahmedabad">Ahmedabad</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="genderFilter" class="form-label fw-bold">Gender</label>
+                    <select id="genderFilter" class="form-select">
+                      <option value="">All Genders</option>
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                      <option value="O">Others</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Age Range</label>
+                    <div class="row">
+                      <div class="col-6">
+                        <input type="number" id="minAgeFilter" class="form-control" placeholder="Min Age">
+                      </div>
+                      <div class="col-6">
+                        <input type="number" id="maxAgeFilter" class="form-control" placeholder="Max Age">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Last Visit Date</label>
+                    <div class="row">
+                      <div class="col-6">
+                        <input type="date" id="visitFromDate" class="form-control">
+                      </div>
+                      <div class="col-6">
+                        <input type="date" id="visitToDate" class="form-control">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Additional Demographics Features -->
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <div class="card">
+                    <div class="card-header bg-light">
+                      <h6 class="mb-0">Visit Patterns</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Total Visits</label>
+                            <div class="row">
+                              <div class="col-6">
+                                <input type="number" id="minVisitsFilter" class="form-control" placeholder="Min Visits">
+                              </div>
+                              <div class="col-6">
+                                <input type="number" id="maxVisitsFilter" class="form-control" placeholder="Max Visits">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Bill Amount</label>
+                            <div class="row">
+                              <div class="col-6">
+                                <input type="number" id="minBillFilter" class="form-control" placeholder="Min Amount">
+                              </div>
+                              <div class="col-6">
+                                <input type="number" id="maxBillFilter" class="form-control" placeholder="Max Amount">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="d-flex justify-content-between mt-4">
+                    <button id="applyDemographicFilters" class="btn btn-primary">
+                      <i class="bi bi-funnel me-1"></i> Apply Filters
+                    </button>
+                    <button id="resetDemographicFilters" class="btn btn-outline-secondary">
+                      <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tab 4: Campaign Setup -->
+        <div id="tab4" class="tab-box">
+          <div class="row">
+            <div class="col-md-7">
+              <div class="card">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-send me-2"></i> Campaign Details</h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label for="campaignName" class="form-label fw-bold">Campaign Name</label>
+                    <input type="text" id="campaignName" class="form-control" placeholder="Enter campaign name">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Delivery Channels</label>
+                    <div class="d-flex flex-wrap">
+                      <div class="custom-checkbox form-check me-4 mb-2">
+                        <input class="form-check-input" type="checkbox" id="sendSMS" checked>
+                        <label class="form-check-label" for="sendSMS">
+                          <i class="bi bi-chat-left-text me-1"></i> SMS
+                        </label>
+                      </div>
+                      <div class="custom-checkbox form-check me-4 mb-2">
+                        <input class="form-check-input" type="checkbox" id="sendEmail" checked>
+                        <label class="form-check-label" for="sendEmail">
+                          <i class="bi bi-envelope me-1"></i> Email
+                        </label>
+                      </div>
+                      <div class="custom-checkbox form-check me-4 mb-2">
+                        <input class="form-check-input" type="checkbox" id="sendWhatsApp">
+                        <label class="form-check-label" for="sendWhatsApp">
+                          <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                        </label>
+                      </div>
+                      <div class="custom-checkbox form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="sendPushNotification">
+                        <label class="form-check-label" for="sendPushNotification">
+                          <i class="bi bi-bell me-1"></i> Push Notification
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="messageTemplate" class="form-label fw-bold">Message Template</label>
+                    <div class="card mb-2">
+                      <div class="card-header bg-light py-2">
+                        <small class="fw-bold">Available Variables:</small>
+                        <div class="mt-1">
+                          <span class="badge bg-primary me-1">[Name]</span>
+                          <span class="badge bg-primary me-1">[Condition]</span>
+                          <span class="badge bg-primary me-1">[Age]</span>
+                          <span class="badge bg-primary me-1">[Gender]</span>
+                          <span class="badge bg-primary me-1">[LastVisitDate]</span>
+                        </div>
+                      </div>
+                    </div>
+                    <textarea id="messageTemplate" class="form-control" rows="5" placeholder="Enter message template">Dear [Name], based on your recent test results, we recommend a follow-up visit for your [Condition]. Please contact our clinic to schedule an appointment. Stay healthy!</textarea>
+                    <div class="form-text">Use the variables above to personalize your message.</div>
+                  </div>
+                  
+                  <!-- New: Schedule Campaign -->
+                  <div class="mb-3 campaign-schedule">
+                    <label class="form-label fw-bold">Campaign Schedule</label>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">Start Date</label>
+                          <input type="date" id="campaignStartDate" class="form-control">
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">Delivery Time</label>
+                          <input type="time" id="campaignDeliveryTime" class="form-control">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-check mt-2">
+                      <input class="form-check-input" type="checkbox" id="sendImmediately" checked>
+                      <label class="form-check-label" for="sendImmediately">
+                        Send Immediately
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <button id="previewCampaign" class="btn btn-success w-100 mt-3">
+                    <i class="bi bi-eye me-1"></i> Preview Campaign
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-5">
+              <!-- Campaign Templates -->
+              <div class="card mb-4">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-file-earmark-text me-2"></i> Message Templates</h5>
+                </div>
+                <div class="card-body">
+                  <div class="template-card card mb-3">
+                    <div class="card-body">
+                      <h6 class="card-title">Follow-up Reminder</h6>
+                      <p class="card-text">Dear [Name], based on your recent test results for [Condition], we recommend scheduling a follow-up appointment. Please call us at 123-456-7890.</p>
+                      <button class="btn btn-sm btn-outline-primary use-template-btn">Use Template</button>
+                    </div>
+                  </div>
+                  <div class="template-card card mb-3">
+                    <div class="card-body">
+                      <h6 class="card-title">Medication Reminder</h6>
+                      <p class="card-text">Dear [Name], this is a reminder to continue your medication for [Condition]. Regular medication is crucial for managing your condition. Stay healthy!</p>
+                      <button class="btn btn-sm btn-outline-primary use-template-btn">Use Template</button>
+                    </div>
+                  </div>
+                  <div class="template-card card">
+                    <div class="card-body">
+                      <h6 class="card-title">Health Education</h6>
+                      <p class="card-text">Dear [Name], we're organizing a health education session on managing [Condition]. Join us to learn more about improving your health. Date: [Date]</p>
+                      <button class="btn btn-sm btn-outline-primary use-template-btn">Use Template</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Template Preview -->
+              <div class="card">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-phone me-2"></i> Live Preview</h5>
+                </div>
+                <div class="card-body">
+                  <div class="template-preview">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="avatar me-2">KJ</div>
+                      <div class="fw-bold">Kajal Jindal</div>
+                    </div>
+                    <div class="message-preview" id="liveMessagePreview">
+                      Dear Kajal Jindal, based on your recent test results, we recommend a follow-up visit for your Cardiovascular Disease. Please contact our clinic to schedule an appointment. Stay healthy!
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tab 5: Patient List -->
+        <div id="tab5" class="tab-box">
+          <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i> Filtered Patients</h5>
+              <div>
+                <span id="patientCount" class="badge bg-primary px-3 py-2">0 patients found</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <button id="selectAllPatients" class="btn btn-outline-primary btn-sm me-2">
+                    <i class="bi bi-check-all me-1"></i> Select All
+                  </button>
+                  <button id="deselectAllPatients" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x-lg me-1"></i> Deselect All
+                  </button>
+                </div>
+                <div>
+                  <span class="me-2">Selected: <span id="selectedCount" class="fw-bold">0</span></span>
+                </div>
+              </div>
+              <div class="table-responsive overflow-x-auto">
+                <table class="table table-hover" id="table_patient">
+                  <thead>
+                    <tr>
+                      <th>Select</th>
+                      <th>Patient Details</th>
+                      <th>Contact Info</th>
+                      <th>Health Conditions</th>
+                      <th>Last Visit</th>
+                    </tr>
+                  </thead>
+                  <tbody id="patientTableBody">
+                    <tr>
+                      <td colspan="6" class="text-center py-4">
+                        <div class="text-muted">
+                          <i class="bi bi-search fs-3 d-block mb-2"></i>
+                          No patients found. Please search or apply filters.
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tab 6: Analytics -->
+        <div id="tab6" class="tab-box">
+          <div class="row">
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-pie-chart me-2"></i> Health Conditions Distribution</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="conditionsChart" height="250"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-bar-chart me-2"></i> Patient Age Distribution</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="ageChart" height="250"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0"><i class="bi bi-graph-up me-2"></i> Campaign Performance</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="campaignPerformanceChart" height="250"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Campaign Preview Modal -->
+    <div class="modal fade" id="campaignPreviewModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title"><i class="bi bi-eye me-2"></i> Campaign Preview</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <h6 class="text-muted">Campaign Name</h6>
+                  <p class="fw-bold fs-5" id="previewCampaignName">Campaign Name</p>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted">Selected Patients</h6>
+                  <p class="fw-bold fs-5" id="previewPatientCount">0</p>
+                </div>
+              </div>
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <h6 class="text-muted">Message Type</h6>
+                  <p class="fw-bold" id="previewMessageTypes">SMS, Email</p>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted">Status</h6>
+                  <span class="badge bg-warning px-3 py-2">Ready to Send</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  <h6 class="text-muted">Message Preview (Sample)</h6>
+                  <div id="messagePreviewContainer" class="border rounded p-3 bg-light">
+                    <!-- Sample messages will be inserted here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelCampaign" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-success" id="sendCampaign">
+              <i class="bi bi-send me-1"></i> Send Campaign
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Campaign Success Modal -->
+    <div class="modal fade" id="campaignSuccessModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i> Campaign Sent</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <div class="mb-4">
+              <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+            </div>
+            <h4 class="mb-3">Campaign Sent Successfully!</h4>
+            <p id="campaignSuccessDetails" class="mb-0">Your campaign has been sent to 0 patients.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success w-100" id="startNewCampaign" data-bs-dismiss="modal">
+              Start New Campaign
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Main JavaScript -->
+  <script>
+    // Global variables
+    let patientData = []; // Stores all loaded patient data
+    let filteredPatients = []; // Stores filtered patient list
+    let selectedPatients = []; // Stores selected patients for campaign
+    let samplePatients = []; // Sample patient data from the API
+    
+    // DOM Elements
+    document.addEventListener('DOMContentLoaded', function() {
+      initSamplePatients();
+      
+      const elements = {
+        // Search and filters
+        patientNumberInput: document.getElementById('patientNumber'),
+        searchPatientBtn: document.getElementById('searchPatient'),
+        searchStatus: document.getElementById('searchStatus'),
+        loadSampleDataBtn: document.getElementById('loadSampleDataBtn'),
+        locationFilter: document.getElementById('locationFilter'),
+        genderFilter: document.getElementById('genderFilter'),
+        minAgeFilter: document.getElementById('minAgeFilter'),
+        maxAgeFilter: document.getElementById('maxAgeFilter'),
+        visitFromDate: document.getElementById('visitFromDate'),
+        visitToDate: document.getElementById('visitToDate'),
+        minVisitsFilter: document.getElementById('minVisitsFilter'),
+        maxVisitsFilter: document.getElementById('maxVisitsFilter'),
+        minBillFilter: document.getElementById('minBillFilter'),
+        maxBillFilter: document.getElementById('maxBillFilter'),
+        testNameFilter: document.getElementById('testNameFilter'),
+        abnormalResultsFilter: document.getElementById('abnormalResultsFilter'),
+        conditionFilters: document.querySelectorAll('.conditionFilter'),
+        applyFiltersBtn: document.getElementById('applyFilters'),
+        resetFiltersBtn: document.getElementById('resetFilters'),
+        applyDemographicFiltersBtn: document.getElementById('applyDemographicFilters'),
+        resetDemographicFiltersBtn: document.getElementById('resetDemographicFilters'),
+        
+        // Stats
+        totalPatientsCount: document.getElementById('totalPatientsCount'),
+        selectedPatientsCount: document.getElementById('selectedPatientsCount'),
+        filteredConditionsCount: document.getElementById('filteredConditionsCount'),
+        
+        // Patient list
+        patientCount: document.getElementById('patientCount'),
+        patientTableBody: document.getElementById('patientTableBody'),
+        selectAllPatientsBtn: document.getElementById('selectAllPatients'),
+        deselectAllPatientsBtn: document.getElementById('deselectAllPatients'),
+        selectedCount: document.getElementById('selectedCount'),
+        selectPatientBtns: document.querySelectorAll('.select-patient-btn'),
+        
+        // Campaign settings
+        campaignNameInput: document.getElementById('campaignName'),
+        sendSMSCheckbox: document.getElementById('sendSMS'),
+        sendEmailCheckbox: document.getElementById('sendEmail'),
+        sendWhatsAppCheckbox: document.getElementById('sendWhatsApp'),
+        sendPushNotificationCheckbox: document.getElementById('sendPushNotification'),
+        messageTemplateInput: document.getElementById('messageTemplate'),
+        liveMessagePreview: document.getElementById('liveMessagePreview'),
+        previewCampaignBtn: document.getElementById('previewCampaign'),
+        campaignStartDate: document.getElementById('campaignStartDate'),
+        campaignDeliveryTime: document.getElementById('campaignDeliveryTime'),
+        sendImmediatelyCheckbox: document.getElementById('sendImmediately'),
+        useTemplateBtns: document.querySelectorAll('.use-template-btn'),
+        
+        // Campaign preview modal
+        campaignPreviewModal: new bootstrap.Modal(document.getElementById('campaignPreviewModal')),
+        previewCampaignName: document.getElementById('previewCampaignName'),
+        previewPatientCount: document.getElementById('previewPatientCount'),
+        previewMessageTypes: document.getElementById('previewMessageTypes'),
+        messagePreviewContainer: document.getElementById('messagePreviewContainer'),
+        sendCampaignBtn: document.getElementById('sendCampaign'),
+        cancelCampaignBtn: document.getElementById('cancelCampaign'),
+        
+        // Campaign success modal
+        campaignSuccessModal: new bootstrap.Modal(document.getElementById('campaignSuccessModal')),
+        campaignSuccessDetails: document.getElementById('campaignSuccessDetails'),
+        startNewCampaignBtn: document.getElementById('startNewCampaign'),
+        
+        // Loading overlay
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        loadingMessage: document.getElementById('loadingMessage')
+      };
+      
+      // Initialize charts
+      initCharts();
+      
+      // Helper functions
+      function showLoading(message = 'Loading data...') {
+        elements.loadingMessage.textContent = message;
+        elements.loadingOverlay.classList.remove('d-none');
+      }
+      
+      function hideLoading() {
+        elements.loadingOverlay.classList.add('d-none');
+      }
+	  
+      window.hideError = function() {
+  const popup = document.getElementById('errorPopup');
+  popup.classList.remove('active');
+  elements.searchStatus.classList.add('d-none');
+  if (popup.timeoutId) {
+    clearTimeout(popup.timeoutId); // Clear the timeout if it exists
+  }
+}
+
+function showError(message) {
+  // Update original status element
+  elements.searchStatus.textContent = message;
+  elements.searchStatus.classList.remove('d-none', 'text-success');
+  elements.searchStatus.classList.add('text-danger');
+  
+  // Show popup
+  const popup = document.getElementById('errorPopup');
+  const messageElement = document.getElementById('errorMessage');
+  messageElement.textContent = message;
+  popup.classList.add('active');
+  
+  // Clear any existing timeout
+  if (popup.timeoutId) {
+    clearTimeout(popup.timeoutId);
+  }
+  
+  // Hide both after 5 seconds
+  popup.timeoutId = setTimeout(() => {
+    hideError();
+  }, 5000);
+}
+      
+      function showSuccess(message) {
+        elements.searchStatus.textContent = message;
+        elements.searchStatus.classList.remove('d-none', 'text-danger');
+        elements.searchStatus.classList.add('text-success');
+        setTimeout(() => {
+          elements.searchStatus.classList.add('d-none');
+        }, 3000);
+      }
+      
+      // Handle select patient buttons in sample patients section
+      elements.selectPatientBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const patientId = this.getAttribute('data-patient-id');
+          
+          // Toggle button appearance and text
+          if (!selectedPatients.includes(patientId)) {
+            selectedPatients.push(patientId);
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+            this.innerHTML = '<i class="bi bi-check-circle me-1"></i> Selected';
+          } else {
+            const index = selectedPatients.indexOf(patientId);
+            if (index > -1) {
+              selectedPatients.splice(index, 1);
+            }
+            this.classList.remove('btn-primary');
+            this.classList.add('btn-outline-primary');
+            this.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Select for Campaign';
+          }
+          
+          updateSelectedCount();
+          updateStats();
+        });
+      });
+      
+      // Message template live preview
+      elements.messageTemplateInput.addEventListener('input', updateLivePreview);
+      
+      function updateLivePreview() {
+        const template = elements.messageTemplateInput.value;
+        let preview = template
+          .replace(/\[Name\]/g, 'Kajal Jindal')
+          .replace(/\[Condition\]/g, 'Cardiovascular Disease')
+          .replace(/\[Age\]/g, '38')
+          .replace(/\[Gender\]/g, 'Female')
+          .replace(/\[LastVisitDate\]/g, '06 Apr 2024');
+        
+        elements.liveMessagePreview.textContent = preview;
+      }
+      
+      // Use template buttons
+      elements.useTemplateBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const template = this.closest('.template-card').querySelector('.card-text').textContent;
+          elements.messageTemplateInput.value = template;
+          updateLivePreview();
+        });
+      });
+      
+      // Initialize sample patient data (this would be replaced by actual API data)
+      function initSamplePatients() {
+        // Sample data initialization (this would come from the API in production)
+        samplePatients = [
+          {
+            PatientDemographics: [{
+              PNAME: "Kajal Jindal",
+              PatientNumber: "OHPS0AEU754764",
+              SEX: "F",
+              Age: "38 Year(s)",
+              MobileNumber: "9212308304",
+              EMail: ""
+            }],
+            HealthConditions: [{
+              PNAME: "Kajal Jindal",
+              PatientNumber: "OHPS0AEU754764",
+              CONDITION: "Blood Disorders, Cardiovascular Disease, Electrolyte Imbalance, Immune System Disorders, Infections or Inflammation, Iron Deficiency, Vitamin B12 Deficiency, Vitamin D Deficiency"
+            }],
+            PatientVisits: [{
+              PatientNumber: "OHPS0AEU754764",
+              VisitDate: "2024-04-06T08:23:22.000Z",
+              VisitNumber: "NA10591801"
+            }]
+          },
+          {
+            PatientDemographics: [{
+              PNAME: "Raj Kumar",
+              PatientNumber: "OHPS54321",
+              SEX: "M",
+              Age: "45 Year(s)",
+              MobileNumber: "9876543210",
+              EMail: "raj.kumar@example.com"
+            }],
+            HealthConditions: [{
+              PNAME: "Raj Kumar",
+              PatientNumber: "OHPS54321",
+              CONDITION: "Diabetes, Hypertension"
+            }],
+            PatientVisits: [{
+              PatientNumber: "OHPS54321",
+              VisitDate: "2024-04-01T10:15:00.000Z",
+              VisitNumber: "NA10591802"
+            }]
+          },
+          {
+            PatientDemographics: [{
+              PNAME: "Priya Sharma",
+              PatientNumber: "OHPS12345",
+              SEX: "F",
+              Age: "32 Year(s)",
+              MobileNumber: "9898989898",
+              EMail: "priya.sharma@example.com"
+            }],
+            HealthConditions: [{
+              PNAME: "Priya Sharma",
+              PatientNumber: "OHPS12345",
+              CONDITION: "Thyroid Disorders, Vitamin B12 Deficiency"
+            }],
+            PatientVisits: [{
+              PatientNumber: "OHPS12345",
+              VisitDate: "2024-03-28T14:30:00.000Z",
+              VisitNumber: "NA10591803"
+            }]
+          },
+          {
+            PatientDemographics: [{
+              PNAME: "Amit Patel",
+              PatientNumber: "OHPS67890",
+              SEX: "M",
+              Age: "55 Year(s)",
+              MobileNumber: "9765432109",
+              EMail: "amit.patel@example.com"
+            }],
+            HealthConditions: [{
+              PNAME: "Amit Patel",
+              PatientNumber: "OHPS67890",
+              CONDITION: "Diabetes, Cardiovascular Disease, Kidney Disease"
+            }],
+            PatientVisits: [{
+              PatientNumber: "OHPS67890",
+              VisitDate: "2024-03-25T09:45:00.000Z",
+              VisitNumber: "NA10591804"
+            }]
+          }
+        ];
+      }
+      
+      // Initialize charts 
+      function initCharts() {
+        // Health conditions distribution chart
+        const conditionsCtx = document.getElementById('conditionsChart').getContext('2d');
+        const conditionsChart = new Chart(conditionsCtx, {
+          type: 'pie',
+          data: {
+            labels: ['Cardiovascular Disease', 'Diabetes', 'Blood Disorders', 'Thyroid Disorders', 'Vitamin Deficiency', 'Other'],
+            datasets: [{
+              data: [35, 25, 15, 10, 10, 5],
+              backgroundColor: [
+                'rgba(239, 68, 68, 0.7)',
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(16, 185, 129, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(107, 114, 128, 0.7)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'right',
+              },
+              title: {
+                display: false
+              }
+            }
+          }
+        });
+        
+        // Age distribution chart
+        const ageCtx = document.getElementById('ageChart').getContext('2d');
+        const ageChart = new Chart(ageCtx, {
+          type: 'bar',
+          data: {
+            labels: ['18-30', '31-40', '41-50', '51-60', '61-70', '71+'],
+            datasets: [{
+              label: 'Patients by Age Group',
+              data: [42, 85, 105, 78, 56, 30],
+              backgroundColor: 'rgba(59, 130, 246, 0.7)',
+              borderColor: 'rgba(59, 130, 246, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+        
+        // Campaign performance chart
+        const performanceCtx = document.getElementById('campaignPerformanceChart').getContext('2d');
+        const performanceChart = new Chart(performanceCtx, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+              label: 'Campaigns Sent',
+              data: [12, 19, 15, 17, 14, 15],
+              borderColor: 'rgba(59, 130, 246, 1)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4,
+              fill: true
+            }, {
+              label: 'Response Rate (%)',
+              data: [25, 32, 30, 35, 28, 32],
+              borderColor: 'rgba(16, 185, 129, 1)',
+              backgroundColor: 'rgba(16, 185, 129, 0.0)',
+              tension: 0.4,
+              yAxisID: 'y1'
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Campaigns'
+                }
+              },
+              y1: {
+                beginAtZero: true,
+                position: 'right',
+                grid: {
+                  drawOnChartArea: false
+                },
+                title: {
+                  display: true,
+                  text: 'Response Rate (%)'
+                },
+                max: 100
+              }
+            }
+          }
+        });
+      }
+      
+      // Data fetching functions
+      async function fetchPatientData(patientNumber) {
+        showLoading(`Fetching data for patient ${patientNumber}...`);
+        try {
+  const response = await fetch(`https://blueshift.abi-health.com:3000/patientnumber/${patientNumber}`, {
+    method: 'GET',
+    headers: {
+      'x-api-key': 'q1riHeoxylJy41TqzOXT75rty/yGU2e1pk+0GGFMrTUJ3fB67uIQXGzC47dvg6s3iSnczDxsK9fm+AStHt9ZDQ=='
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  hideLoading();
+  return data;
+} catch (error) {
+          hideLoading();
+          console.error('Error fetching patient data:', error);
+          showError(`Failed to fetch patient data: ${error.message}`);
+          return null;
+        }
+      }
+      
+      // Sample patient data loading for demo purposes
+      async function loadSamplePatientData() {
+        showLoading('Loading sample patient data...');
+        try {
+          const response = await fetch(`/api/sample_patient`);
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+          }
+          const data = await response.json();
+          patientData = [data]; // Store as a single patient in the array
+          filteredPatients = [...patientData];
+          hideLoading();
+          updatePatientTable();
+          updateStats();
+          
+          // Switch to results tab
+          switchToTab('tab5');
+          
+          showSuccess('Sample patient data loaded successfully');
+        } catch (error) {
+          hideLoading();
+          console.error('Error loading sample data:', error);
+          showError(`Failed to load sample data: ${error.message}`);
+        }
+      }
+      
+      // Load predefined sample patients (for demo)
+      function loadSamplePatients() {
+        patientData = [...samplePatients];
+        filteredPatients = [...patientData];
+        updatePatientTable();
+        updateStats();
+        
+        // Switch to results tab
+        switchToTab('tab5');
+        
+        showSuccess('Sample patient data loaded successfully');
+      }
+      
+      // Stats functions
+      function updateStats() {
+        elements.totalPatientsCount.textContent = patientData.length;
+        elements.selectedPatientsCount.textContent = selectedPatients.length;
+        
+        let conditionsCount = 0;
+        const conditionFilters = document.querySelectorAll('.conditionFilter:checked');
+        conditionsCount = conditionFilters.length;
+        elements.filteredConditionsCount.textContent = conditionsCount;
+      }
+      
+      // Filter functions
+      function getSelectedConditions() {
+        const selectedConditions = [];
+        elements.conditionFilters.forEach(checkbox => {
+          if (checkbox.checked) {
+            selectedConditions.push(checkbox.value);
+          }
+        });
+        return selectedConditions;
+      }
+      
+      function applyFilters() {
+        const location = elements.locationFilter.value;
+        const gender = elements.genderFilter.value;
+        const minAge = elements.minAgeFilter.value ? parseInt(elements.minAgeFilter.value) : null;
+        const maxAge = elements.maxAgeFilter.value ? parseInt(elements.maxAgeFilter.value) : null;
+        const visitFromDate = elements.visitFromDate.value ? new Date(elements.visitFromDate.value) : null;
+        const visitToDate = elements.visitToDate.value ? new Date(elements.visitToDate.value) : null;
+        const minVisits = elements.minVisitsFilter.value ? parseInt(elements.minVisitsFilter.value) : null;
+        const maxVisits = elements.maxVisitsFilter.value ? parseInt(elements.maxVisitsFilter.value) : null;
+        const minBill = elements.minBillFilter.value ? parseFloat(elements.minBillFilter.value) : null;
+        const maxBill = elements.maxBillFilter.value ? parseFloat(elements.maxBillFilter.value) : null;
+        const testName = elements.testNameFilter.value;
+        const abnormalResults = elements.abnormalResultsFilter.value;
+        const selectedConditions = getSelectedConditions();
+        
+        // Start with all patients
+        filteredPatients = [...patientData];
+        
+        // Apply location filter if selected
+        if (location) {
+          // In a real application, this would filter by location
+          // Since our sample data doesn't have location, we'll skip this for demo
+        }
+        
+        // Apply gender filter if selected
+        if (gender) {
+          filteredPatients = filteredPatients.filter(patient => {
+            if (!patient.PatientDemographics || patient.PatientDemographics.length === 0) {
+              return false;
+            }
+            return patient.PatientDemographics[0].SEX === gender;
+          });
+        }
+        
+        // Apply age filter if selected
+        if (minAge !== null || maxAge !== null) {
+          filteredPatients = filteredPatients.filter(patient => {
+            if (!patient.PatientDemographics || patient.PatientDemographics.length === 0) {
+              return false;
+            }
+            
+            const demographics = patient.PatientDemographics[0];
+            if (!demographics.Age) {
+              return false;
+            }
+            
+            const ageMatch = demographics.Age.match(/(\d+)/);
+            if (!ageMatch || !ageMatch[1]) {
+              return false;
+            }
+            
+            const age = parseInt(ageMatch[1]);
+            
+            if (minAge !== null && age < minAge) {
+              return false;
+            }
+            
+            if (maxAge !== null && age > maxAge) {
+              return false;
+            }
+            
+            return true;
+          });
+        }
+        
+        // Apply visit date filter if selected
+        if (visitFromDate || visitToDate) {
+          filteredPatients = filteredPatients.filter(patient => {
+            if (!patient.PatientVisits || patient.PatientVisits.length === 0) {
+              return false;
+            }
+            
+            const visitDate = new Date(patient.PatientVisits[0].VisitDate);
+            
+            if (visitFromDate && visitDate < visitFromDate) {
+              return false;
+            }
+            
+            if (visitToDate && visitDate > visitToDate) {
+              return false;
+            }
+            
+            return true;
+          });
+        }
+        
+        // Apply visit count filter if selected
+        if (minVisits !== null || maxVisits !== null) {
+          filteredPatients = filteredPatients.filter(patient => {
+            if (!patient.VisitPatern || patient.VisitPatern.length === 0) {
+              return false;
+            }
+            
+            const visitPattern = patient.VisitPatern[0];
+            const totalVisits = visitPattern.TotalVisits || 0;
+            
+            if (minVisits !== null && totalVisits < minVisits) {
+              return false;
+            }
+            
+            if (maxVisits !== null && totalVisits > maxVisits) {
+              return false;
+            }
+            
+            return true;
+          });
+        }
+        
+        // Apply bill amount filter if selected
+        if (minBill !== null || maxBill !== null) {
+          filteredPatients = filteredPatients.filter(patient => {
+            if (!patient.VisitPatern || patient.VisitPatern.length === 0) {
+              return false;
+            }
+            
+            const visitPattern = patient.VisitPatern[0];
+            const totalAmount = visitPattern.TotalAmount || 0;
+            
+            if (minBill !== null && totalAmount < minBill) {
+              return false;
+            }
+            
+            if (maxBill !== null && totalAmount > maxBill) {
+              return false;
+            }
+            
+            return true;
+          });
+        }
+        
+        // Apply test name filter if selected
+        if (testName) {
+          filteredPatients = filteredPatients.filter(patient => {
+            if (!patient.OrderedTests || patient.OrderedTests.length === 0) {
+              return false;
+            }
+            
+            return patient.OrderedTests.some(test => 
+              test.ORDNAME && test.ORDNAME.includes(testName)
+            );
+          });
+        }
+        
+        // Apply abnormal results filter if selected
+        if (abnormalResults) {
+          filteredPatients = filteredPatients.filter(patient => {
+            if (!patient.Results || patient.Results.length === 0) {
+              return false;
+            }
+            
+            return patient.Results.some(result => 
+              result.IsAbnormal === abnormalResults
+            );
+          });
+        }
+        
+        // Apply condition filter if any selected
+        if (selectedConditions.length > 0) {
+          filteredPatients = filteredPatients.filter(patient => {
+            // Check if patient has health conditions
+            if (!patient.HealthConditions || patient.HealthConditions.length === 0) {
+              return false;
+            }
+            
+            // Check if any of the patient's conditions match the selected conditions
+            for (const condition of patient.HealthConditions) {
+              for (const selectedCondition of selectedConditions) {
+                if (condition.CONDITION && condition.CONDITION.includes(selectedCondition)) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          });
+        }
+        
+        // Update the patient table with filtered results
+        updatePatientTable();
+        updateStats();
+        
+        // Switch to results tab
+        switchToTab('tab5');
+      }
+      
+      function resetFilters() {
+        elements.locationFilter.value = '';
+        elements.genderFilter.value = '';
+        elements.minAgeFilter.value = '';
+        elements.maxAgeFilter.value = '';
+        elements.visitFromDate.value = '';
+        elements.visitToDate.value = '';
+        elements.minVisitsFilter.value = '';
+        elements.maxVisitsFilter.value = '';
+        elements.minBillFilter.value = '';
+        elements.maxBillFilter.value = '';
+        elements.testNameFilter.value = '';
+        elements.abnormalResultsFilter.value = '';
+        elements.conditionFilters.forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        
+        // Reset to all patients
+        filteredPatients = [...patientData];
+        updatePatientTable();
+        updateStats();
+      }
+      
+      // Table and UI update functions
+      function updatePatientTable() {
+        const tableBody = elements.patientTableBody;
+        // Update patient count
+        elements.patientCount.textContent = `${filteredPatients.length} patients found`;
+        
+        // Clear selection
+        selectedPatients = [];
+        updateSelectedCount();
+        
+        // Clear table
+        tableBody.innerHTML = '';
+        
+        if (filteredPatients.length === 0) {
+          // No patients found
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td colspan="6" class="text-center py-4">
+              <div class="text-muted">
+                <i class="bi bi-search fs-3 d-block mb-2"></i>
+                No patients found. Please search or apply filters.
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(row);
+          return;
+        }
+        
+        // Add patients to table
+        filteredPatients.forEach((patient, index) => {
+          if (!patient.PatientDemographics || patient.PatientDemographics.length === 0) {
+            return; // Skip if no demographics
+          }
+          
+          const demographics = patient.PatientDemographics[0];
+          const healthCondition = patient.HealthConditions && patient.HealthConditions.length > 0 
+            ? patient.HealthConditions[0].CONDITION 
+            : 'None';
+          const patientVisit = patient.PatientVisits && patient.PatientVisits.length > 0 
+            ? patient.PatientVisits[0] 
+            : null;
+          
+          // Format health conditions as tags
+          let healthConditionHtml = '';
+          if (healthCondition && healthCondition !== 'None') {
+            const conditions = healthCondition.split(',').map(c => c.trim()).slice(0, 10);
+            
+            conditions.forEach(condition => {
+              let tagClass = 'health-tag-default';
+              
+              if (condition.includes('Cardiovascular')) {
+                tagClass = 'health-tag-cardiovascular';
+              } else if (condition.includes('Diabetes')) {
+                tagClass = 'health-tag-diabetes';
+              } else if (condition.includes('Thyroid')) {
+                tagClass = 'health-tag-thyroid';
+              } else if (condition.includes('Blood')) {
+                tagClass = 'health-tag-blood';
+              } else if (condition.includes('Vitamin')) {
+                tagClass = 'health-tag-vitamin';
+              }
+              
+              healthConditionHtml += `<div class="health-tag ${tagClass}">${condition}</div>`;
+            });
+            
+            if (healthCondition.split(',').length > 10) {
+              healthConditionHtml += `<div class="text-muted small">+ ${healthCondition.split(',').length - 10} more</div>`;
+            }
+          } else {
+            healthConditionHtml = '<span class="text-muted">No conditions recorded</span>';
+          }
+          
+          // Create patient avatar (initials)
+          let initials = '';
+          if (demographics.PNAME) {
+            const nameParts = demographics.PNAME.split(' ');
+            if (nameParts.length >= 2) {
+              initials = nameParts[0].charAt(0) + nameParts[1].charAt(0);
+            } else if (nameParts.length === 1) {
+              initials = nameParts[0].charAt(0);
+            }
+          }
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="text-center">
+              <div class="form-check d-flex justify-content-center">
+                <input type="checkbox" class="form-check-input patient-select"
+                       data-patient-id="${demographics.PatientNumber}">
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar me-3">${initials}</div>
+                <div>
+                  <div class="fw-bold">${demographics.PNAME}</div>
+                  <div class="text-muted small">${demographics.PatientNumber}</div>
+                  <div class="text-muted small">${demographics.Age || 'N/A'} • ${demographics.SEX === 'M' ? 'Male' : demographics.SEX === 'F' ? 'Female' : 'Other'}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div><i class="bi bi-phone me-1"></i> ${demographics.MobileNumber || 'N/A'}</div>
+              <div class="text-muted small">${demographics.EMail || '<No email>'}</div>
+            </td>
+            <td>
+              <div>${healthConditionHtml}</div>
+            </td>
+            <td>
+              <div>${patientVisit ? new Date(patientVisit.VisitDate).toLocaleDateString() : 'N/A'}</div>
+              <div class="text-muted small">${patientVisit ? patientVisit.VisitNumber : ''}</div>
+            </td>
+          `;
+          tableBody.appendChild(row);
+          
+          // Add event listener to checkbox
+          const checkbox = row.querySelector('.patient-select');
+          checkbox.addEventListener('change', function() {
+            const patientId = this.getAttribute('data-patient-id');
+            if (this.checked) {
+              if (!selectedPatients.includes(patientId)) {
+                selectedPatients.push(patientId);
+              }
+            } else {
+              const index = selectedPatients.indexOf(patientId);
+              if (index > -1) {
+                selectedPatients.splice(index, 1);
+              }
+            }
+            updateSelectedCount();
+            updateStats();
+          });
+        });
+      }
+      
+      function updateSelectedCount() {
+        elements.selectedCount.textContent = selectedPatients.length;
+      }
+      
+      function selectAllPatients() {
+        const allCheckboxes = document.querySelectorAll('.patient-select');
+        const isAllSelected = selectedPatients.length === filteredPatients.length;
+        
+        allCheckboxes.forEach(checkbox => {
+          checkbox.checked = !isAllSelected;
+          const patientId = checkbox.getAttribute('data-patient-id');
+          
+          if (!isAllSelected) {
+            // Select all
+            if (!selectedPatients.includes(patientId)) {
+              selectedPatients.push(patientId);
+            }
+          } else {
+            // Deselect all
+            selectedPatients = [];
+          }
+        });
+        
+        updateSelectedCount();
+        updateStats();
+      }
+      
+      function deselectAllPatients() {
+        const allCheckboxes = document.querySelectorAll('.patient-select');
+        allCheckboxes.forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        selectedPatients = [];
+        updateSelectedCount();
+        updateStats();
+      }
+      
+      // Campaign functions
+      function previewCampaign() {
+        if (selectedPatients.length === 0) {
+          showError('Please select at least one patient for the campaign');
+          return;
+        }
+        
+        const campaignName = elements.campaignNameInput.value.trim();
+        if (!campaignName) {
+          showError('Please enter a campaign name');
+          return;
+        }
+        
+        const messageTemplate = elements.messageTemplateInput.value.trim();
+        if (!messageTemplate) {
+          showError('Please enter a message template');
+          return;
+        }
+        
+        // Check if any message type is selected
+        if (!elements.sendSMSCheckbox.checked && 
+            !elements.sendEmailCheckbox.checked &&
+            !elements.sendWhatsAppCheckbox.checked &&
+            !elements.sendPushNotificationCheckbox.checked) {
+          showError('Please select at least one message type (SMS, Email, etc.)');
+          return;
+        }
+        
+        // Update preview panel
+        elements.previewCampaignName.textContent = campaignName;
+        elements.previewPatientCount.textContent = selectedPatients.length;
+        
+        // Message types
+        const messageTypes = [];
+        if (elements.sendSMSCheckbox.checked) messageTypes.push('SMS');
+        if (elements.sendEmailCheckbox.checked) messageTypes.push('Email');
+        if (elements.sendWhatsAppCheckbox.checked) messageTypes.push('WhatsApp');
+        if (elements.sendPushNotificationCheckbox.checked) messageTypes.push('Push Notification');
+        elements.previewMessageTypes.textContent = messageTypes.join(', ');
+        
+        // Generate message previews
+        elements.messagePreviewContainer.innerHTML = '';
+        const selectedPatientData = filteredPatients.filter(patient => 
+          patient.PatientDemographics && 
+          patient.PatientDemographics.length > 0 && 
+          selectedPatients.includes(patient.PatientDemographics[0].PatientNumber)
+        );
+        
+        if (selectedPatientData.length === 0) {
+          const noPreviewDiv = document.createElement('div');
+          noPreviewDiv.className = 'p-3 bg-light rounded';
+          noPreviewDiv.textContent = 'No patient data available for preview';
+          elements.messagePreviewContainer.appendChild(noPreviewDiv);
+        } else {
+          // Show previews for up to 3 patients
+          const previewCount = Math.min(selectedPatientData.length, 3);
+          for (let i = 0; i < previewCount; i++) {
+            const patient = selectedPatientData[i];
+            const demographics = patient.PatientDemographics[0];
+            const healthCondition = patient.HealthConditions && patient.HealthConditions.length > 0 
+              ? patient.HealthConditions[0].CONDITION.split(',')[0].trim() // Just use the first condition
+              : 'health condition';
+            const visitDate = patient.PatientVisits && patient.PatientVisits.length > 0 
+              ? new Date(patient.PatientVisits[0].VisitDate).toLocaleDateString() 
+              : 'N/A';
+            
+            let personalizedMessage = messageTemplate
+              .replace(/\[Name\]/g, demographics.PNAME)
+              .replace(/\[Condition\]/g, healthCondition)
+              .replace(/\[Age\]/g, demographics.Age ? demographics.Age.match(/\d+/)[0] : 'N/A')
+              .replace(/\[Gender\]/g, demographics.SEX === 'M' ? 'Male' : demographics.SEX === 'F' ? 'Female' : 'Other')
+              .replace(/\[LastVisitDate\]/g, visitDate);
+            
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'p-3 bg-light rounded mb-3';
+            previewDiv.innerHTML = `
+              <div class="mb-2">
+                <div class="d-flex align-items-center">
+                  <div class="avatar me-2">${demographics.PNAME.split(' ').map(n => n[0]).join('').substring(0, 2)}</div>
+                  <div>
+                    <span class="fw-bold">${demographics.PNAME}</span>
+                    <span class="text-muted small"> (${demographics.PatientNumber})</span>
+                  </div>
+                </div>
+              </div>
+              <div class="border-start border-4 border-primary ps-3 py-1 mb-2">
+                ${personalizedMessage}
+              </div>
+              <div class="d-flex justify-content-between mt-2">
+                <div class="text-muted small">
+                  <i class="bi bi-${elements.sendSMSCheckbox.checked ? 'chat-left-text' : 'x'} me-1"></i> SMS
+                  <i class="bi bi-${elements.sendEmailCheckbox.checked ? 'envelope' : 'x'} ms-2 me-1"></i> Email
+                </div>
+                ${demographics.MobileNumber ? `<div class="text-muted small"><i class="bi bi-phone me-1"></i> ${demographics.MobileNumber}</div>` : ''}
+              </div>
+            `;
+            elements.messagePreviewContainer.appendChild(previewDiv);
+          }
+          
+          // Add note if there are more patients
+          if (selectedPatientData.length > 30) {
+            const moreNote = document.createElement('div');
+            moreNote.className = 'text-muted small mt-2 text-center';
+            moreNote.textContent = `+ ${selectedPatientData.length - 30} more patients...`;
+            elements.messagePreviewContainer.appendChild(moreNote);
+          }
+        }
+        
+        // Show preview modal
+        elements.campaignPreviewModal.show();
+      }
+      
+      async function sendCampaign() {
+        if (selectedPatients.length === 0) {
+          showError('Please select at least one patient for the campaign');
+          return;
+        }
+        
+        const campaignName = elements.campaignNameInput.value.trim();
+        const messageTemplate = elements.messageTemplateInput.value.trim();
+        const messageTypes = [];
+        if (elements.sendSMSCheckbox.checked) messageTypes.push('SMS');
+        if (elements.sendEmailCheckbox.checked) messageTypes.push('Email');
+        if (elements.sendWhatsAppCheckbox.checked) messageTypes.push('WhatsApp');
+        if (elements.sendPushNotificationCheckbox.checked) messageTypes.push('Push Notification');
+        
+        // Scheduled or immediate
+        const scheduledDate = elements.sendImmediatelyCheckbox.checked ? null : elements.campaignStartDate.value;
+        const scheduledTime = elements.sendImmediatelyCheckbox.checked ? null : elements.campaignDeliveryTime.value;
+        
+        // Prepare campaign data
+        const campaignData = {
+          name: campaignName,
+          messageTemplate,
+          messageTypes,
+          patients: selectedPatients,
+          scheduled: !elements.sendImmediatelyCheckbox.checked,
+          scheduledDate,
+          scheduledTime
+        };
+        
+        // Send campaign
+        showLoading('Sending campaign...');
+        try {
+          const response = await fetch('/api/campaign/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(campaignData)
+          });
+          
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          hideLoading();
+          
+          // Hide preview modal
+          elements.campaignPreviewModal.hide();
+          
+          // Show success message
+          elements.campaignSuccessDetails.textContent = `Your campaign has been sent to ${result.sentCount} patients.`;
+          elements.campaignSuccessModal.show();
+          
+        } catch (error) {
+          hideLoading();
+          console.error('Error sending campaign:', error);
+          showError(`Failed to send campaign: ${error.message}`);
+        }
+      }
+      
+      function startNewCampaign() {
+        // Reset fields
+        elements.campaignNameInput.value = '';
+        elements.messageTemplateInput.value = 'Dear [Name], based on your recent test results, we recommend a follow-up visit for your [Condition]. Please contact our clinic to schedule an appointment. Stay healthy!';
+        elements.sendSMSCheckbox.checked = true;
+        elements.sendEmailCheckbox.checked = true;
+        elements.sendWhatsAppCheckbox.checked = false;
+        elements.sendPushNotificationCheckbox.checked = false;
+        elements.sendImmediatelyCheckbox.checked = true;
+        elements.campaignStartDate.value = '';
+        elements.campaignDeliveryTime.value = '';
+        
+        // Reset patient selection
+        const allCheckboxes = document.querySelectorAll('.patient-select');
+        allCheckboxes.forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        selectedPatients = [];
+        updateSelectedCount();
+        updateStats();
+        
+        // Update live preview
+        updateLivePreview();
+        
+        // Switch to patient search tab
+        switchToTab('tab1');
+      }
+      
+      // Tab switching
+      const tabLinks = document.querySelectorAll('.tab-menu ul li a');
+      const tabBoxes = document.querySelectorAll('.tab-box');
+      
+      function switchToTab(tabId) {
+        // Remove active class from all links
+        tabLinks.forEach(l => l.classList.remove('active'));
+        
+        // Add active class to corresponding link
+        const tabLink = document.querySelector(`.tab-menu ul li a[data-rel="${tabId}"]`);
+        if (tabLink) {
+          tabLink.classList.add('active');
+        }
+        
+        // Hide all tab boxes
+        tabBoxes.forEach(box => box.style.display = 'none');
+        
+        // Show the corresponding tab box
+        const tabBox = document.getElementById(tabId);
+        if (tabBox) {
+          tabBox.style.display = 'block';
+        }
+      }
+      
+      tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Get tab ID
+          const tabId = this.getAttribute('data-rel');
+          switchToTab(tabId);
+        });
+      });
+      
+      // Event listeners
+      elements.searchPatientBtn.addEventListener('click', async function() {
+        const patientNumber = elements.patientNumberInput.value.trim();
+        if (!patientNumber) {
+          showError('Please enter a patient number');
+          return;
+        }
+        
+        const data = await fetchPatientData(patientNumber);
+        if (data) {
+          patientData = [data];
+          filteredPatients = [...patientData];
+          updatePatientTable();
+          updateStats();
+          showSuccess('Patient data loaded successfully');
+          
+          // Switch to results tab
+          switchToTab('tab5');
+        }
+      });
+      
+      
+      elements.loadSampleDataBtn.addEventListener('click', loadSamplePatients);
+      elements.applyFiltersBtn.addEventListener('click', applyFilters);
+      elements.resetFiltersBtn.addEventListener('click', resetFilters);
+      elements.applyDemographicFiltersBtn.addEventListener('click', applyFilters);
+      elements.resetDemographicFiltersBtn.addEventListener('click', resetFilters);
+      elements.selectAllPatientsBtn.addEventListener('click', selectAllPatients);
+      elements.deselectAllPatientsBtn.addEventListener('click', deselectAllPatients);
+      elements.previewCampaignBtn.addEventListener('click', previewCampaign);
+      elements.sendCampaignBtn.addEventListener('click', sendCampaign);
+      elements.startNewCampaignBtn.addEventListener('click', startNewCampaign);
+      
+      // Conditional display of scheduled fields
+      elements.sendImmediatelyCheckbox.addEventListener('change', function() {
+        const dateTimeFields = document.querySelectorAll('#campaignStartDate, #campaignDeliveryTime');
+        dateTimeFields.forEach(field => {
+          field.disabled = this.checked;
+        });
+      });
+      
+      // Initialize time fields for today
+      const today = new Date();
+      const dateString = today.toISOString().split('T')[0];
+      elements.campaignStartDate.value = dateString;
+      elements.campaignDeliveryTime.value = '09:00';
+      elements.campaignStartDate.disabled = true;
+      elements.campaignDeliveryTime.disabled = true;
+      
+      // Initialize with live preview
+      updateLivePreview();
+    });
+  </script>
+</body>
+</html>

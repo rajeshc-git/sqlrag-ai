@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlueShift Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+      :root {
+          --primary-gradient: linear-gradient(135deg, #10b981, #0891b2);
+          --secondary-gradient: linear-gradient(135deg, #8b5cf6, #6366f1);
+          --warning-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+          --danger-gradient: linear-gradient(135deg, #ef4444, #b91c1c);
+          --success-gradient: linear-gradient(135deg, #10b981, #059669);
+          --primary-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+          --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+          --content-bg: linear-gradient(135deg, #f8fafc, #f1f5f9);
+          --card-border: rgba(255, 255, 255, 0.2);
+          --blur-intensity: 12px;
+          --card-bg: rgba(255, 255, 255, 0.15);
+          --card-hover-transform: translateY(-5px);
+      }
+
+      .dark {
+          --content-bg: linear-gradient(135deg, #111827, #0f172a);
+          --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+          --card-border: rgba(255, 255, 255, 0.08);
+          --card-bg: rgba(17, 24, 39, 0.4);
+      }
+
+      /* Base Styling */
+      body {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          background: var(--content-bg);
+          background-attachment: fixed;
+          transition: background 0.3s ease;
+          overflow-x: hidden;
+      }
+
+      /* Enhanced glassmorphism effect */
+      .glass {
+          background: var(--card-bg);
+          backdrop-filter: blur(var(--blur-intensity));
+          -webkit-backdrop-filter: blur(var(--blur-intensity));
+          border: 1px solid var(--card-border);
+          box-shadow: var(--card-shadow);
+          transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      }
+
+      .glass:hover {
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+          transform: var(--card-hover-transform);
+      }
+
+      /* Premium card effect */
+      .premium-card {
+          position: relative;
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 
+              0 20px 50px rgba(0, 0, 0, 0.1),
+              0 5px 15px rgba(0, 0, 0, 0.05),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+          overflow: hidden;
+          transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .premium-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+              225deg,
+              rgba(255, 255, 255, 0) 40%,
+              rgba(255, 255, 255, 0.15) 60%
+          );
+          pointer-events: none;
+          z-index: 1;
+      }
+
+      .dark .premium-card {
+          background: rgba(17, 24, 39, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          box-shadow: 
+              0 20px 50px rgba(0, 0, 0, 0.3),
+              0 5px 15px rgba(0, 0, 0, 0.2),
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+      }
+
+      .dark .premium-card::before {
+          background: linear-gradient(
+              225deg,
+              rgba(255, 255, 255, 0) 40%,
+              rgba(255, 255, 255, 0.05) 60%
+          );
+      }
+
+
+      /* Toggle switch styling with premium aesthetics */
+      .toggle-checkbox {
+          display: none;
+      }
+
+      .toggle-label {
+          position: relative;
+          display: inline-block;
+          width: 52px;
+          height: 26px;
+          background: linear-gradient(to right, #d1d5db, #9ca3af);
+          border-radius: 9999px;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          box-shadow: 
+              inset 0 2px 6px rgba(0, 0, 0, 0.15),
+              0 1px 2px rgba(255, 255, 255, 0.1);
+      }
+
+      .dark .toggle-label {
+          background: linear-gradient(to right, #374151, #1f2937);
+          box-shadow: 
+              inset 0 2px 6px rgba(0, 0, 0, 0.3),
+              0 1px 2px rgba(255, 255, 255, 0.03);
+      }
+
+      .toggle-label::before {
+          content: '';
+          position: absolute;
+          top: 3px;
+          left: 3px;
+          width: 20px;
+          height: 20px;
+          background: #fff;
+          border-radius: 50%;
+          transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .toggle-checkbox:checked + .toggle-label {
+          background: var(--primary-gradient);
+      }
+
+      .toggle-checkbox:checked + .toggle-label::before {
+          transform: translateX(26px);
+          box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+      }
+
+      /* Enhanced theme toggle with 3D effect */
+      .mode-toggle {
+          background: rgba(243, 244, 246, 0.85);
+          border-radius: 9999px;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          width: 84px;
+          height: 42px;
+          position: relative;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          box-shadow: 
+              0 4px 12px rgba(0, 0, 0, 0.1), 
+              inset 0 1px 2px rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .dark .mode-toggle {
+          background: rgba(31, 41, 55, 0.85);
+          box-shadow: 
+              0 4px 12px rgba(0, 0, 0, 0.2), 
+              inset 0 1px 2px rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .mode-toggle .icon {
+          font-size: 24px;
+          position: absolute;
+          transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+          filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+      }
+
+      .mode-toggle .sun {
+          transform: translateX(9px);
+          color: #f59e0b;
+          filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.4));
+      }
+
+      .mode-toggle .moon {
+          transform: translateX(51px);
+          color: #94a3b8;
+      }
+
+      .dark .mode-toggle .sun {
+          transform: translateX(51px);
+          color: #94a3b8;
+      }
+
+      .dark .mode-toggle .moon {
+          transform: translateX(9px);
+          color: #6366f1;
+          filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.4));
+      }
+      
+      /* Elegant scrollbar */
+      ::-webkit-scrollbar {
+          width: 12px;
+      }
+
+      ::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 8px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #64748b, #475569);
+          border-radius: 8px;
+          border: 3px solid #f1f5f9;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #475569, #334155);
+      }
+
+      .dark ::-webkit-scrollbar-track {
+          background: #1f2937;
+      }
+
+      .dark ::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #9ca3af, #6b7280);
+          border: 3px solid #1f2937;
+      }
+
+      /* Enhanced focus style for inputs */
+      .input-glow:focus {
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25), 0 0 20px rgba(16, 185, 129, 0.15);
+          border-color: #10b981;
+          outline: none;
+      }
+
+      /* Improved animations */
+      @keyframes slideIn {
+          from {
+              transform: translateY(25px) scale(0.96);
+              opacity: 0;
+          }
+          to {
+              transform: translateY(0) scale(1);
+              opacity: 1;
+          }
+      }
+
+      @keyframes fadeIn {
+          from {
+              opacity: 0;
+          }
+          to {
+              opacity: 1;
+          }
+      }
+
+      @keyframes float {
+          0% {
+              transform: translateY(0px);
+          }
+          50% {
+              transform: translateY(-8px);
+          }
+          100% {
+              transform: translateY(0px);
+          }
+      }
+
+      .animate-slide-in {
+          animation: slideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .animate-fade-in {
+          animation: fadeIn 0.8s ease-out;
+      }
+      
+      .animate-float {
+          animation: float 5s ease-in-out infinite;
+      }
+
+      /* Refined text colors */
+      .dark .text-gray-600 {
+          color: #d1d5db !important;
+      }
+
+      .dark .text-gray-700 {
+          color: #e5e7eb !important;
+      }
+
+      .dark .text-gray-800 {
+          color: #f3f4f6 !important;
+      }
+
+      .dark .text-gray-300 {
+          color: #f9fafb !important;
+      }
+
+      /* Enhanced loading state */
+      .loading {
+          opacity: 0.7;
+          cursor: not-allowed;
+          position: relative;
+      }
+
+      .loading::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 24px;
+          height: 24px;
+          margin-top: -12px;
+          margin-left: -12px;
+          border: 3px solid rgba(16, 185, 129, 0.3);
+          border-top-color: #10b981;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+          to {
+              transform: rotate(360deg);
+          }
+      }
+
+      /* Ultra premium table styling */
+      .modern-table {
+          border-collapse: separate;
+          border-spacing: 0;
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          overflow: hidden;
+          box-shadow: 
+              0 30px 60px rgba(0, 0, 0, 0.12),
+              0 10px 25px rgba(0, 0, 0, 0.08);
+          width: 100%;
+          transition: all 0.4s ease;
+      }
+
+      .dark .modern-table {
+          background: rgba(17, 24, 39, 0.4);
+          box-shadow: 
+              0 30px 60px rgba(0, 0, 0, 0.25),
+              0 10px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .modern-table th {
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 22px 18px;
+          font-size: 0.85rem;
+          position: relative;
+          transition: all 0.3s ease;
+          color: white;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+
+      .modern-table th:after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 1px;
+          background: rgba(255, 255, 255, 0.2);
+      }
+
+      .modern-table th:hover {
+          background: linear-gradient(to right, rgba(5, 150, 105, 0.9), rgba(4, 120, 87, 0.9));
+      }
+
+      .modern-table tr {
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+		  cursor: pointer;
+      }
+
+      .modern-table tbody tr:hover {
+          background: rgba(16, 185, 129, 0.12);
+          transform: scale(1.015) translateX(5px);
+          box-shadow: 
+              0 10px 20px rgba(0, 0, 0, 0.12),
+              0 4px 8px rgba(0, 0, 0, 0.06);
+      }
+
+      .dark .modern-table tbody tr:hover {
+          background: rgba(16, 185, 129, 0.18);
+          box-shadow: 
+              0 10px 20px rgba(0, 0, 0, 0.25),
+              0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .modern-table td {
+          border-bottom: 1px solid rgba(209, 213, 219, 0.25);
+          padding: 20px 18px;
+          font-size: 0.95rem;
+          vertical-align: middle;
+      }
+
+      .dark .modern-table td {
+          border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+      }
+
+      .modern-table tbody tr:last-child td {
+          border-bottom: none;
+      }
+
+      /* Animated status indicators */
+      .status-dot {
+          display: inline-block;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          margin-right: 10px;
+          position: relative;
+          box-shadow: 0 0 15px currentColor;
+      }
+
+      .status-dot::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 100%;
+          height: 100%;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background: currentColor;
+          opacity: 0.6;
+          animation: pulse-ring 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+      }
+
+      .status-dot::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 100%;
+          height: 100%;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background: currentColor;
+      }
+
+      @keyframes pulse-ring {
+          0% {
+              width: 100%;
+              height: 100%;
+              opacity: 0.6;
+          }
+          50% {
+              width: 200%;
+              height: 200%;
+              opacity: 0;
+          }
+          100% {
+              width: 100%;
+              height: 100%;
+              opacity: 0;
+          }
+      }
+
+      /* Premium tooltip with animation */
+      .tooltip {
+          position: relative;
+      }
+
+      .tooltip::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 130%;
+          left: 50%;
+          transform: translateX(-50%) translateY(10px) scale(0.8);
+          background: linear-gradient(135deg, #1f2937, #111827);
+          color: #fff;
+          padding: 10px 14px;
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 500;
+          white-space: nowrap;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          z-index: 100;
+          box-shadow: 
+              0 15px 35px rgba(0, 0, 0, 0.2),
+              0 5px 15px rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .tooltip::before {
+          content: '';
+          position: absolute;
+          bottom: 130%;
+          left: 50%;
+          transform: translateX(-50%) translateY(10px) rotate(45deg) scale(0.8);
+          width: 12px;
+          height: 12px;
+          background: linear-gradient(135deg, #1f2937, #111827);
+          border-radius: 2px;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          z-index: 99;
+      }
+
+      .tooltip:hover::after, .tooltip:hover::before {
+          opacity: 1;
+          visibility: visible;
+          transform: translateX(-50%) translateY(0) scale(1);
+      }
+
+      .tooltip:hover::before {
+          transform: translateX(-50%) translateY(3px) rotate(45deg) scale(1);
+      }
+
+      /* Enhanced responsive handling */
+      @media (max-width: 640px) {
+          .modern-table {
+              display: block;
+              overflow-x: auto;
+              white-space: nowrap;
+              border-radius: 16px;
+          }
+
+          .modern-table thead, .modern-table tbody, .modern-table tr, .modern-table th, .modern-table td {
+              display: revert;
+          }
+
+          .modern-table th, .modern-table td {
+              padding: 16px;
+          }
+      }
+
+      /* Luxurious module capsules */
+      .module-capsule {
+          display: inline-flex;
+          align-items: center;
+          font-weight: 600;
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          border-radius: 9999px;
+          padding: 8px 16px;
+          font-size: 0.85rem;
+          letter-spacing: 0.02em;
+          box-shadow: 
+              0 8px 20px rgba(0, 0, 0, 0.1),
+              0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      .module-capsule.bg-orange-500 {
+          background: var(--warning-gradient);
+          color: white;
+      }
+
+      .module-capsule.bg-teal-500 {
+          background: var(--primary-gradient);
+          color: white;
+      }
+
+      .module-capsule:hover {
+          transform: scale(1.08) translateY(-3px);
+          box-shadow: 
+              0 12px 25px rgba(0, 0, 0, 0.15),
+              0 5px 10px rgba(0, 0, 0, 0.08);
+      }
+
+      .edit-btn:hover {
+          color: #10b981;
+      }
+
+      /* Luxurious form inputs */
+      .form-input {
+          width: 100%;
+          background: rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(209, 213, 219, 0.6);
+          border-radius: 12px;
+          padding: 14px 18px;
+          color: inherit;
+          transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          font-size: 0.95rem;
+          box-shadow: 
+              0 4px 10px rgba(0, 0, 0, 0.03),
+              0 1px 3px rgba(0, 0, 0, 0.02);
+      }
+
+      .dark .form-input {
+	      color: white;
+          background: rgba(31, 41, 55, 0.3);
+          border-color: rgba(75, 85, 99, 0.4);
+          box-shadow: 
+              0 4px 10px rgba(0, 0, 0, 0.1),
+              0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+	  
+	  .dark .sidebar-link {
+	     color: white;
+	   }
+
+      .form-input:focus {
+          outline: none;
+          border-color: #10b981;
+          box-shadow: 
+              0 0 0 3px rgba(16, 185, 129, 0.25), 
+              0 4px 15px rgba(16, 185, 129, 0.15);
+          background: rgba(255, 255, 255, 0.2);
+      }
+
+      .dark .form-input:focus {
+          background: rgba(31, 41, 55, 0.4);
+          box-shadow: 
+              0 0 0 3px rgba(16, 185, 129, 0.25), 
+              0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Enhanced feedback messages */
+      .feedback-message {
+          position: fixed;
+          top: 2rem;
+          right: 2rem;
+          padding: 1.2rem 1.8rem;
+          border-radius: 16px;
+          z-index: 1000;
+          transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+          box-shadow: 
+              0 20px 50px rgba(0, 0, 0, 0.2),
+              0 10px 20px rgba(0, 0, 0, 0.1);
+          display: flex;
+          align-items: center;
+          max-width: 90%;
+          transform: translateY(0);
+          backdrop-filter: blur(15px);
+          -webkit-backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .feedback-message i {
+          margin-right: 14px;
+          font-size: 1.8rem;
+      }
+
+      .feedback-success {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.96), rgba(5, 150, 105, 0.96));
+          color: #fff;
+      }
+
+      .feedback-error {
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.96), rgba(185, 28, 28, 0.96));
+          color: #fff;
+      }
+
+      /* Enhanced chart container */
+      .chart-container {
+          position: relative;
+          z-index: 10;
+          min-height: 280px;
+          padding: 25px;
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(15px);
+          -webkit-backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 
+              0 20px 50px rgba(0, 0, 0, 0.1),
+              0 10px 20px rgba(0, 0, 0, 0.05);
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .dark .chart-container {
+          background: rgba(31, 41, 55, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          box-shadow: 
+              0 20px 50px rgba(0, 0, 0, 0.25),
+              0 10px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .chart-container:hover {
+          box-shadow: 
+              0 25px 60px rgba(0, 0, 0, 0.12),
+              0 15px 30px rgba(0, 0, 0, 0.08);
+          transform: translateY(-7px);
+      }
+
+      .dark .chart-container:hover {
+          box-shadow: 
+              0 25px 60px rgba(0, 0, 0, 0.3),
+              0 15px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .chart-container canvas {
+          width: 100% !important;
+          height: auto !important;
+      }
+
+      /* Enhanced backdrop blur */
+      @supports (backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0)) {
+          .backdrop-blur-lg {
+              -webkit-backdrop-filter: blur(25px);
+              backdrop-filter: blur(25px);
+          }
+      }
+
+      /* Premium sidebar */
+      #sidebar {
+          background: rgba(249, 250, 251, 0.9);
+          backdrop-filter: blur(25px);
+          -webkit-backdrop-filter: blur(25px);
+          transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+          box-shadow: 
+              5px 0 30px rgba(0, 0, 0, 0.1),
+              0 0 0 1px rgba(255, 255, 255, 0.2);
+          z-index: 100;
+      }
+
+      .dark #sidebar {
+          background: rgba(17, 24, 39, 0.9);
+          backdrop-filter: blur(25px);
+          -webkit-backdrop-filter: blur(25px);
+          box-shadow: 
+              5px 0 30px rgba(0, 0, 0, 0.25),
+              0 0 0 1px rgba(75, 85, 99, 0.3);
+      }
+
+      /* Premium sidebar links */
+      .sidebar-link {
+          display: flex;
+          align-items: center;
+          padding: 14px 18px;
+          border-radius: 14px;
+          margin-bottom: 10px;
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          font-weight: 500;
+          position: relative;
+          overflow: hidden;
+      }
+
+      .sidebar-link::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 4px;
+          height: 100%;
+          background: linear-gradient(to bottom, #10b981, #059669);
+          transform: scaleY(0);
+          transition: transform 0.3s ease;
+          transform-origin: bottom;
+      }
+
+      .sidebar-link:hover {
+          background: rgba(16, 185, 129, 0.15);
+          color: #059669;
+          transform: translateX(5px);
+      }
+
+      .sidebar-link:hover::before {
+          transform: scaleY(1);
+      }
+
+      .dark .sidebar-link:hover {
+          background: rgba(16, 185, 129, 0.2);
+          color: #10b981;
+      }
+
+      .sidebar-link i {
+          font-size: 1.25rem;
+          margin-right: 14px;
+          transition: all 0.3s ease;
+      }
+
+      .sidebar-link:hover i {
+          transform: scale(1.2);
+          color: #10b981;
+      }
+
+      /* Enhanced buttons */
+      .btn {
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+          border-radius: 12px;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          padding: 12px 24px;
+      }
+
+      .btn:not([disabled]):hover {
+          transform: translateY(-4px);
+          box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary {
+          background: var(--primary-gradient);
+          color: white;
+          border: none;
+      }
+
+      .btn-primary:hover {
+          background: linear-gradient(135deg, #059669, #047857);
+          box-shadow: 0 15px 30px rgba(16, 185, 129, 0.25);
+      }
+
+      .btn-secondary {
+          background: linear-gradient(135deg, #6b7280, #4b5563);
+          color: white;
+          border: none;
+      }
+
+      .btn-secondary:hover {
+          background: linear-gradient(135deg, #4b5563, #374151);
+          box-shadow: 0 15px 30px rgba(75, 85, 99, 0.25);
+      }
+
+      /* Premium button effects */
+      .btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+              90deg,
+              transparent 0%,
+              rgba(255, 255, 255, 0.3) 50%,
+              transparent 100%
+          );
+          transition: 0.8s;
+      }
+
+      .btn:not([disabled]):hover::before {
+          left: 100%;
+      }
+
+      .btn::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(to top, rgba(255, 255, 255, 0.08), transparent);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+      }
+
+      .btn:not([disabled]):hover::after {
+          opacity: 1;
+      }
+
+      /* Enhanced form labels */
+      .form-label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 600;
+          font-size: 0.95rem;
+          color: #374151;
+          transition: all 0.3s ease;
+          position: relative;
+      }
+
+      .dark .form-label {
+          color: #e5e7eb;
+      }
+
+      .form-label .required {
+          color: #ef4444;
+          font-weight: 700;
+          margin-left: 2px;
+      }
+
+      /* Improved pagination */
+      .pagination-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 20px;
+          border-radius: 12px;
+          font-weight: 600;
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          background: rgba(16, 185, 129, 0.15);
+          color: #059669;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+          box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .pagination-button:not([disabled]):hover {
+          background: rgba(16, 185, 129, 0.25);
+          transform: translateY(-3px);
+          box-shadow: 0 12px 20px rgba(16, 185, 129, 0.2);
+      }
+
+      .pagination-button[disabled] {
+          opacity: 0.5;
+          cursor: not-allowed;
+          background: rgba(209, 213, 219, 0.3);
+          color: #6b7280;
+          border-color: rgba(209, 213, 219, 0.5);
+      }
+
+      .pagination-info {
+          padding: 10px 18px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(209, 213, 219, 0.3);
+          font-weight: 500;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      }
+
+      .dark .pagination-info {
+          background: rgba(31, 41, 55, 0.3);
+          border: 1px solid rgba(75, 85, 99, 0.3);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Premium header */
+      .dashboard-header {
+          position: relative;
+          padding-bottom: 1.5rem;
+          margin-bottom: 2rem;
+          overflow: hidden;
+      }
+
+      .dashboard-header::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background: linear-gradient(to right, 
+              rgba(16, 185, 129, 0), 
+              rgba(16, 185, 129, 0.5), 
+              rgba(16, 185, 129, 0));
+      }
+
+      .dark .dashboard-header::after {
+          background: linear-gradient(to right, 
+              rgba(16, 185, 129, 0), 
+              rgba(16, 185, 129, 0.3), 
+              rgba(16, 185, 129, 0));
+      }
+
+      .gradient-text {
+          background: linear-gradient(135deg, #10b981, #0891b2);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          font-weight: 800;
+          letter-spacing: -0.025em;
+      }
+
+      .dark .gradient-text {
+          background: linear-gradient(135deg, #10b981, #22d3ee);
+          -webkit-background-clip: text;
+          background-clip: text;
+      }
+
+      /* Enhanced mobile menu */
+      .mobile-menu-btn {
+          width: 45px;
+          height: 45px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(209, 213, 219, 0.3);
+          transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .mobile-menu-btn:hover {
+          background: rgba(16, 185, 129, 0.15);
+          color: #059669;
+          transform: scale(1.05);
+          box-shadow: 0 8px 15px rgba(16, 185, 129, 0.15);
+      }
+
+      .dark .mobile-menu-btn {
+          color: white;
+          border: 1px solid rgba(75, 85, 99, 0.3);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .dark .mobile-menu-btn:hover {
+          background: rgba(16, 185, 129, 0.2);
+          color: #10b981;
+          box-shadow: 0 8px 15px rgba(16, 185, 129, 0.2);
+      }
+      
+      /* Stats card styling */
+      .stat-card {
+          position: relative;
+          overflow: hidden;
+          border-radius: 16px;
+          padding: 1.5rem;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      
+      .stat-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      }
+      
+      .dark .stat-card {
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      }
+      
+      .dark .stat-card:hover {
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+      }
+      
+      .stat-card i {
+          position: absolute;
+          bottom: -10px;
+          right: -10px;
+          font-size: 4rem;
+          opacity: 0.15;
+          transform: rotate(-15deg);
+          transition: all 0.4s ease;
+      }
+      
+      .stat-card:hover i {
+          transform: rotate(0) scale(1.1);
+          opacity: 0.2;
+      }
+      
+      /* Premium search input */
+      .search-input-container {
+          position: relative;
+          transition: all 0.3s ease;
+      }
+      
+      .search-input {
+          width: 100%;
+          padding: 14px 18px 14px 50px;
+          border-radius: 12px;
+          border: 1px solid rgba(209, 213, 219, 0.5);
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      
+      .dark .search-input {
+          background: rgba(31, 41, 55, 0.3);
+          border-color: rgba(75, 85, 99, 0.4);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+      
+      .search-input:focus {
+          border-color: #10b981;
+          box-shadow: 
+              0 0 0 3px rgba(16, 185, 129, 0.2),
+              0 10px 25px rgba(0, 0, 0, 0.08);
+          transform: translateY(-2px);
+      }
+      
+      .search-icon {
+          position: absolute;
+          left: 18px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #6b7280;
+          transition: all 0.3s ease;
+      }
+      
+      .search-input:focus + .search-icon {
+          color: #10b981;
+      }
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased transition-colors duration-300">
+  <div class="flex">
+    <!-- Premium Sidebar -->
+    <aside id="sidebar" class="w-72 h-screen fixed top-0 left-0 z-50 transform -translate-x-full transition-transform duration-300">
+      <div class="p-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center space-x-3">
+          <i class="bi bi-gear-fill text-emerald-500 text-2xl animate-pulse"></i>
+          <span class="text-2xl font-bold gradient-text">BlueShift</span>
+        </div>
+        <button id="sidebarToggle" class="text-gray-600 dark:text-gray-200 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">
+          <i class="bi bi-x-lg text-xl"></i>
+        </button>
+      </div>
+      <nav class="p-6 space-y-2">
+        <a href="#add-staff" class="sidebar-link">
+          <i class="bi bi-person-plus"></i>
+          <span>Add Staff</span>
+        </a>
+        <a href="#staff-records" class="sidebar-link">
+          <i class="bi bi-clipboard-data"></i>
+          <span>Staff Records</span>
+        </a>
+      </nav>
+      
+      <!-- Sidebar footer with info -->
+      <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center space-x-3 mb-4">
+          <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+          <span class="text-sm text-gray-600 dark:text-gray-300">System Online</span>
+        </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">
+          BlueShift Admin © 2025<br>
+          <span class="opacity-75">Version 2.3.5</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 lg:p-10 transition-margin">
+      <!-- Header with mobile menu and theme toggle -->
+      <div class="flex justify-between items-center mb-8">
+        <button id="mobileMenu" class="mobile-menu-btn">
+          <i class="bi bi-list text-2xl"></i>
+        </button>
+        <div class="flex items-center gap-5">
+          <button id="RedirectBtn" onclick="window.location.href='dashboard.html'" class="hidden sm:flex items-center text-white bg-gradient-to-r from-violet-500 to-purple-600 px-5 py-3 rounded-lg hover:from-violet-600 hover:to-purple-700 transition-all text-sm font-medium shadow-lg shadow-violet-500/20">
+            <i class="bi bi-forward mr-2"></i>Modules
+          </button>
+          <div class="mode-toggle" id="themeToggle">
+            <i class="bi bi-sun-fill icon sun"></i>
+            <i class="bi bi-moon-fill icon moon"></i>
+          </div>
+          <button id="logoutBtn" class="text-blue-600 hover:text-blue-800 font-medium hover:underline flex items-center">
+            <i class="bi bi-box-arrow-right mr-2"></i>Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Modules button for small screens -->
+      <div class="sm:hidden mb-6">
+        <button id="RedirectBtnMobile" onclick="window.open('dashboard.html', '_blank')" class="w-full flex items-center justify-center text-white bg-gradient-to-r from-violet-500 to-purple-600 px-5 py-3 rounded-lg hover:from-violet-600 hover:to-purple-700 transition-all text-sm font-medium shadow-lg shadow-violet-500/20">
+          <i class="bi bi-forward mr-2"></i>Modules
+        </button>
+      </div>
+
+      <div class="max-w-7xl mx-auto space-y-10">
+        <!-- Premium Header -->
+        <div class="premium-card p-8 md:p-10 animate-slide-in">
+          <div class="dashboard-header flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <h1 class="text-3xl md:text-4xl font-extrabold gradient-text tracking-tight mb-2">BlueShift Admin</h1>
+              <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base mt-2">Manage your staff efficiently with our enhanced dashboard.</p>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+              <i class="bi bi-clock-history text-emerald-500"></i>
+              <span>Last updated: <span id="currentDate">May 19, 2025</span></span>
+            </div>
+          </div>
+          
+          <!-- Quick stats row -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div class="stat-card bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/10 border border-emerald-100 dark:border-emerald-800/20 animate-float" style="animation-delay: 0s">
+              <div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase mb-2">Total Staff</div>
+              <div id="totalCount" class="text-3xl font-bold text-emerald-700 dark:text-emerald-300">0</div>
+              <div class="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">Team members</div>
+              <i class="bi bi-people text-emerald-500 dark:text-emerald-600"></i>
+            </div>
+            
+            <div class="stat-card bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-100 dark:border-blue-800/20 animate-float" style="animation-delay: 0.3s">
+              <div class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase mb-2">Active Members</div>
+              <div id="activeCount" class="text-3xl font-bold text-blue-700 dark:text-blue-300">0</div>
+              <div class="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Current users</div>
+              <i class="bi bi-lightning-charge text-blue-500 dark:text-blue-600"></i>
+            </div>
+            
+            <div class="stat-card bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/10 border border-amber-100 dark:border-amber-800/20 animate-float" style="animation-delay: 0.6s">
+              <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase mb-2">Inactive Members</div>
+              <div id="inactiveCount" class="text-3xl font-bold text-amber-700 dark:text-amber-300">0</div>
+              <div class="text-xs text-amber-600/70 dark:text-amber-400/70 mt-1">Pending users</div>
+              <i class="bi bi-hourglass-split text-amber-500 dark:text-amber-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Add Staff Form -->
+        <div id="add-staff" class="premium-card p-8 md:p-10 animate-slide-in">
+          <h2 id="formTitle" class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Add New Staff</h2>
+          <form id="staffForm" class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <input type="hidden" id="editUsername" />
+            <div>
+              <label class="form-label">Username <span class="required">*</span></label>
+              <input type="text" id="username" class="form-input" required />
+            </div>
+            <div>
+              <label class="form-label">Full Name <span class="required">*</span></label>
+              <input type="text" id="fullname" class="form-input" required />
+            </div>
+            <div>
+              <label class="form-label">Email <span class="required">*</span></label>
+              <input type="email" id="email" class="form-input" required />
+            </div>
+            <div>
+              <label class="form-label">Phone Number</label>
+              <input type="tel" id="mobileno" class="form-input" />
+            </div>
+            <div>
+              <label class="form-label">Role <span class="required">*</span></label>
+              <select id="role" class="form-input" required>
+                <option value="nurse">Nurse</option>
+                <option value="doctor">Doctor</option>
+                <option value="admin">Admin</option>
+                <option value="client">Client</option>
+                <option value="Marketing Team">Marketing Team</option>
+                <option value="CallCenter Team">CallCenter Team</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label mb-4">Status <span class="required">*</span></label>
+              <div class="flex space-x-10 mt-2">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                  <input type="radio" name="status" value="active" class="toggle-checkbox" required checked />
+                  <span class="toggle-label"></span>
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                  <input type="radio" name="status" value="inactive" class="toggle-checkbox" required />
+                  <span class="toggle-label"></span>
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Inactive</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="form-label mb-4">Modules</label>
+              <div class="flex flex-wrap gap-8 mt-2">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                  <input type="checkbox" name="modules" value="campaign" class="toggle-checkbox" />
+                  <span class="toggle-label"></span>
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Campaign</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                  <input type="checkbox" name="modules" value="callcenter" class="toggle-checkbox" />
+                  <span class="toggle-label"></span>
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Call Center</span>
+                </label>
+              </div>
+            </div>
+            <div class="col-span-1 sm:col-span-2 flex justify-end space-x-5 mt-6">
+              <button type="button" id="cancelEdit" class="hidden btn btn-secondary">
+                <i class="bi bi-x-circle mr-2"></i>Cancel
+              </button>
+              <button type="submit" id="submitBtn" class="btn btn-primary">
+                <i class="bi bi-plus-circle mr-2"></i>Add Staff
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Enhanced Staff Records & Stats -->
+        <div id="staff-records" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Staff Records Table -->
+          <div class="lg:col-span-2 premium-card p-8 md:p-10 animate-slide-in">
+            <h3 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-8">Staff Records</h3>
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-6">
+              <div class="relative w-full sm:w-72 search-input-container">
+                <input type="text" id="tableSearch" placeholder="Search staff..." class="search-input" />
+                <i class="bi bi-search search-icon"></i>
+              </div>
+              <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Rows per page:</span>
+                <select id="rowsPerPage" class="form-input py-2 px-3 text-sm">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="relative overflow-x-auto">
+              <table class="w-full text-sm modern-table">
+                <thead class="bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-700 dark:to-teal-700 text-white sticky top-0 z-10 text-nowrap">
+                  <tr>
+                    <th class="text-left cursor-pointer" data-sort="username">
+                      <div class="flex items-center">
+                        Username <i class="bi bi-arrow-down-up ml-1"></i>
+                      </div>
+                    </th>
+                    <th class="text-left cursor-pointer" data-sort="fullname">
+                      <div class="flex items-center">
+                        Name <i class="bi bi-arrow-down-up ml-1"></i>
+                      </div>
+                    </th>
+                    <th class="text-left cursor-pointer" data-sort="email">
+                      <div class="flex items-center">
+                        Email <i class="bi bi-arrow-down-up ml-1"></i>
+                      </div>
+                    </th>
+                    <th class="text-left cursor-pointer" data-sort="mobileno">
+                      <div class="flex items-center">
+                        Phone <i class="bi bi-arrow-down-up ml-1"></i>
+                      </div>
+                    </th>
+                    <th class="text-left cursor-pointer" data-sort="role">
+                      <div class="flex items-center">
+                        Role <i class="bi bi-arrow-down-up ml-1"></i>
+                      </div>
+                    </th>
+                    <th class="text-left cursor-pointer" data-sort="status">
+                      <div class="flex items-center">
+                        Status <i class="bi bi-arrow-down-up ml-1"></i>
+                      </div>
+                    </th>
+                    <th class="text-left cursor-pointer" data-sort="modules">
+                      <div class="flex items-center">
+                        Modules <i class="bi bi-arrow-down-up ml-1"></i>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="staffTable" class="text-gray-700 dark:text-gray-300"></tbody>
+              </table>
+              <div id="loadingSpinner" class="hidden absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800 bg-opacity-60 dark:bg-opacity-60 backdrop-blur-sm">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-3 border-b-3 border-emerald-500"></div>
+              </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-8 gap-6">
+              <span id="tableInfo" class="text-sm font-medium text-gray-600 dark:text-gray-300 pagination-info"></span>
+              <div class="flex space-x-4">
+                <button id="prevPage" class="pagination-button">
+                  <i class="bi bi-chevron-left mr-2"></i> Previous
+                </button>
+                <span id="pageInfo" class="pagination-info text-sm font-medium text-gray-600 dark:text-gray-300"></span>
+                <button id="nextPage" class="pagination-button">
+                  Next <i class="bi bi-chevron-right ml-2"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enhanced Stats Widget -->
+          <div class="premium-card p-8 md:p-10 animate-slide-in">
+            <h3 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-8">Staff Overview</h3>
+            <div class="chart-container mb-8">
+              <canvas id="staffChart"></canvas>
+            </div>
+            
+            <!-- Role distribution chart -->
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-5">Role Distribution</h4>
+            <div class="chart-container">
+              <canvas id="roleChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+      // DOM Elements
+      const staffForm = document.getElementById('staffForm');
+      const staffTable = document.getElementById('staffTable');
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const themeToggle = document.getElementById('themeToggle');
+      const submitBtn = document.getElementById('submitBtn');
+      const cancelEdit = document.getElementById('cancelEdit');
+      const formTitle = document.getElementById('formTitle');
+      const editUsername = document.getElementById('editUsername');
+      const API_URL = 'http://192.168.10.90:8002';
+
+      // Table State
+      let allUsers = [];
+      let currentPage = 1;
+      let rowsPerPage = 10;
+      let sortColumn = 'username';
+      let sortDirection = 'asc';
+      let searchQuery = '';
+      let isEditing = false;
+
+      // Role chart
+      let roleChart = null;
+
+      // Validate DOM elements
+      if (!staffForm || !staffTable || !sidebar || !sidebarToggle || !mobileMenu || !themeToggle || !submitBtn || !cancelEdit || !formTitle || !editUsername) {
+          console.error('One or more DOM elements are missing');
+          alert('Initialization error: Required elements not found.');
+          throw new Error('DOM initialization failed');
+      }
+      // Show Feedback Message
+      function showFeedback(message, type = 'success') {
+          const feedback = document.createElement('div');
+          feedback.className = `feedback-message feedback-${type}`;
+          const icon = document.createElement('i');
+          icon.className = type === 'success' ? 'bi bi-check-circle' : 'bi bi-exclamation-triangle';
+          feedback.appendChild(icon);
+          
+          const messageText = document.createElement('span');
+          messageText.textContent = message;
+          feedback.appendChild(messageText);
+          
+          document.body.appendChild(feedback);
+          setTimeout(() => {
+              feedback.style.opacity = '0';
+              feedback.style.transform = 'translateY(-15px)';
+              setTimeout(() => feedback.remove(), 300);
+          }, 3000);
+      }
+      // Theme Toggle
+      if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark');
+      }
+      themeToggle.addEventListener('click', () => {
+          document.documentElement.classList.toggle('dark');
+          localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+          if (staffChart) {
+              updateChart(allUsers); // Use current allUsers instead of []
+              // Force canvas redraw
+              staffChart.resize();
+          }
+          if (roleChart) {
+              updateRoleChart(allUsers);
+              roleChart.resize();
+          }
+      });
+
+      // Sidebar Toggle
+      mobileMenu.addEventListener('click', () => {
+          sidebar.classList.remove('-translate-x-full');
+      });
+	  
+      sidebarToggle.addEventListener('click', () => {
+          sidebar.classList.add('-translate-x-full');
+      });
+	  
+	  document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && !mobileMenu.contains(e.target)) {
+             sidebar.classList.add('-translate-x-full');
+            }
+      });
+	  
+      // Detect left swipe to close sidebar
+        let touchStartX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+          touchStartX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+         const touchEndX = e.changedTouches[0].clientX;
+         const swipeDistance = touchStartX - touchEndX;
+
+        // Detect left swipe (only if sidebar is open)
+        if (swipeDistance > 50 && !sidebar.classList.contains('-translate-x-full')) {
+           sidebar.classList.add('-translate-x-full');
+          }
+      });  
+	  
+      // Sidebar Navigation
+      document.querySelectorAll('.sidebar-link').forEach(link => {
+          link.addEventListener('click', (e) => {
+              e.preventDefault();
+              const targetId = link.getAttribute('href')?.substring(1);
+              const targetElement = document.getElementById(targetId);
+              if (targetElement) {
+                  targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  sidebar.classList.add('-translate-x-full'); // Hide sidebar on all devices
+              }
+          });
+      });
+
+      // Fetch Staff Records with Retry
+      async function fetchStaffWithRetry(maxRetries = 3, delay = 1000) {
+          const loadingSpinner = document.getElementById('loadingSpinner');
+          if (loadingSpinner) loadingSpinner.classList.remove('hidden');
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+              try {
+                  const response = await fetch(`${API_URL}/users`, {
+                      method: 'GET',
+                      headers: { 'Accept': 'application/json' }
+                  });
+                  if (!response.ok) {
+                      const errorData = await response.json().catch(() => ({}));
+                      throw new Error(`HTTP error! Status: ${response.status}, Detail: ${errorData.detail || 'Unknown error'}`);
+                  }
+                  const users = await response.json();
+                  if (!Array.isArray(users)) {
+                      throw new Error('Invalid response: Expected an array of users');
+                  }
+                  allUsers = users;
+                  renderTable();
+                  updateChart(users);
+                  updateRoleChart(users);
+                  updateStatistics(users);
+                  return;
+              } catch (error) {
+                  console.error(`Fetch attempt ${attempt} failed:`, error.message);
+                  if (attempt === maxRetries) {
+                      staffTable.innerHTML = '<tr><td colspan="8" class="px-4 py-3 text-center">Failed to load staff records: ' + error.message + '</td></tr>';
+                      alert(`Failed to fetch staff records after ${maxRetries} attempts: ${error.message}. Please check the server connection and try again.`);
+                  } else {
+                      await new Promise(resolve => setTimeout(resolve, delay));
+                  }
+              } finally {
+                  if (loadingSpinner) loadingSpinner.classList.add('hidden');
+              }
+          }
+      }
+
+      // Update statistics counters
+      function updateStatistics(users) {
+          const totalCount = document.getElementById('totalCount');
+          const activeCount = document.getElementById('activeCount');
+          const inactiveCount = document.getElementById('inactiveCount');
+          
+          if (totalCount && activeCount && inactiveCount) {
+              const total = users.length;
+              const active = users.filter(u => u.status === 'active').length;
+              const inactive = users.filter(u => u.status === 'inactive').length;
+              
+              totalCount.textContent = total;
+              activeCount.textContent = active;
+              inactiveCount.textContent = inactive;
+          }
+      }
+      
+      // Reset Form to Add Mode
+      function resetForm() {
+          isEditing = false;
+          editUsername.value = '';
+          formTitle.textContent = 'Add New Staff';
+          submitBtn.innerHTML = '<i class="bi bi-plus-circle mr-2"></i>Add Staff';
+          cancelEdit.classList.add('hidden');
+          staffForm.reset();
+      }
+
+      // Cancel Edit
+      cancelEdit.addEventListener('click', resetForm);
+
+
+      // Render Table
+      function renderTable() {
+          const staffTable = document.getElementById('staffTable');
+          const tableInfo = document.getElementById('tableInfo');
+          const pageInfo = document.getElementById('pageInfo');
+          const prevPage = document.getElementById('prevPage');
+          const nextPage = document.getElementById('nextPage');
+
+          // Filter and Sort
+          let filteredUsers = allUsers.filter(user =>
+              Object.values(user).some(val =>
+                  val && val.toString().toLowerCase().includes(searchQuery.toLowerCase())
+              )
+          );
+          filteredUsers.sort((a, b) => {
+              const valA = a[sortColumn] || '';
+              const valB = b[sortColumn] || '';
+              return sortDirection === 'asc'
+                  ? valA.toString().localeCompare(valB.toString())
+                  : valB.toString().localeCompare(valA.toString());
+          });
+
+          // Pagination
+          const totalRows = filteredUsers.length;
+          const totalPages = Math.ceil(totalRows / rowsPerPage);
+          currentPage = Math.min(currentPage, Math.max(1, totalPages));
+          const start = (currentPage - 1) * rowsPerPage;
+          const end = start + rowsPerPage;
+          const paginatedUsers = filteredUsers.slice(start, end);
+
+          // Render Rows
+          staffTable.innerHTML = paginatedUsers.length ? paginatedUsers.map(user => {
+              // Transform modules into capsules
+              const modules = user.modules ? user.modules.split(',').map(module => {
+                  const isCampaign = module.trim() === 'campaign';
+                  return `<span class="module-capsule ${isCampaign ? 'bg-orange-500' : 'bg-teal-500'} text-white px-3 py-1 rounded-full text-xs capitalize">${module.trim()}</span>`;
+              }).join(' ') : '-';
+              return `
+      <tr class="border-b border-gray-200 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all duration-200 edit-btn" data-username="${user.username}">
+        <td class="px-4 py-4">${user.username || '-'}</td>
+        <td class="px-4 py-4">${user.fullname || '-'}</td>
+        <td class="px-4 py-4">${user.email || '-'}</td>
+        <td class="px-4 py-4">${user.mobileno || '-'}</td>
+        <td class="px-4 py-4 capitalize">${user.role || '-'}</td>
+        <td class="px-4 py-4 capitalize">
+          <span class="status-dot ${user.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'} tooltip" data-tooltip="${user.status || '-'}"></span>
+          ${user.status || '-'}
+        </td>
+        <td class="px-4 py-4 flex flex-wrap gap-2">${modules}</td>
+      </tr>
+    `;
+          }).join('') : '<tr><td colspan="7" class="px-4 py-4 text-center">No staff records found.</td></tr>';
+
+    // Update Table Info
+    tableInfo.textContent = `Showing ${start + 1} to ${Math.min(end, totalRows)} of ${totalRows} entries`;
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+    prevPage.disabled = currentPage === 1;
+    nextPage.disabled = currentPage === totalPages || totalPages === 0;
+
+          // Add Edit Button Listeners
+          document.querySelectorAll('.edit-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                  const username = btn.getAttribute('data-username');
+                  const user = allUsers.find(u => u.username === username);
+                  if (user) {
+                      isEditing = true;
+                      editUsername.value = user.username;
+                      formTitle.textContent = 'Edit Staff';
+                      submitBtn.innerHTML = '<i class="bi bi-check-circle mr-2"></i>Save Changes';
+                      cancelEdit.classList.remove('hidden');
+                      document.getElementById('username').value = user.username;
+                      document.getElementById('fullname').value = user.fullname;
+                      document.getElementById('email').value = user.email;
+                      document.getElementById('mobileno').value = user.mobileno || '';
+                      document.getElementById('role').value = user.role;
+                      document.querySelector(`input[name="status"][value="${user.status}"]`).checked = true;
+                      document.querySelectorAll('input[name="modules"]').forEach(checkbox => {
+                          checkbox.checked = user.modules?.split(',').includes(checkbox.value);
+                      });
+                      window.scrollTo({ top: document.getElementById('add-staff').offsetTop, behavior: 'smooth' });
+                  }
+              });
+          });
+}
+
+// Table Event Listeners
+document.getElementById('tableSearch')?.addEventListener('input', (e) => {
+  searchQuery = e.target.value;
+  currentPage = 1;
+  renderTable();
+});
+document.getElementById('rowsPerPage')?.addEventListener('change', (e) => {
+  rowsPerPage = parseInt(e.target.value);
+  currentPage = 1;
+  renderTable();
+});
+document.getElementById('prevPage')?.addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderTable();
+  }
+});
+document.getElementById('nextPage')?.addEventListener('click', () => {
+  if (currentPage < Math.ceil(allUsers.length / rowsPerPage)) {
+    currentPage++;
+    renderTable();
+  }
+});
+document.querySelectorAll('.modern-table th')?.forEach(th => {
+  th.addEventListener('click', () => {
+    const column = th.getAttribute('data-sort');
+    if (sortColumn === column) {
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortColumn = column;
+      sortDirection = 'asc';
+    }
+    document.querySelectorAll('.modern-table th i').forEach(icon => icon.classList.remove('bi-arrow-up', 'bi-arrow-down'));
+    th.querySelector('i').classList.add(sortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down');
+    renderTable();
+  });
+});
+
+      // Form Submission (Add or Update)
+      let isSubmitting = false;
+      staffForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (isSubmitting) return;
+
+          const username = document.getElementById('username')?.value.trim();
+          const fullname = document.getElementById('fullname')?.value.trim();
+          const email = document.getElementById('email')?.value.trim();
+          const mobileno = document.getElementById('mobileno')?.value.trim();
+          const role = document.getElementById('role')?.value;
+          const status = document.querySelector('input[name="status"]:checked')?.value;
+          const moduleEls = document.querySelectorAll('input[name="modules"]:checked');
+          const modules = Array.from(moduleEls).map(m => m.value).join(',');
+
+          // Validate required fields
+          if (!username || !fullname || !email || !role || !status) {
+              showFeedback('Please fill all required fields!', 'error');
+              return;
+          }
+          if (!isEditing && !modules) {
+              showFeedback('At least one module (Campaign or Call Center) is required for new users.', 'error');
+              return;
+          }
+
+          isSubmitting = true;
+          submitBtn.classList.add('loading');
+          submitBtn.disabled = true;
+
+          // Prepare JSON data
+          const data = {
+              [isEditing ? 'new_username' : 'username']: username,
+              fullname,
+              email,
+              mobileno: mobileno || null,
+              role,
+              status,
+              modules: modules || null
+          };
+
+          try {
+              const url = isEditing ? `${API_URL}/users/${editUsername.value}` : `${API_URL}/signup`;
+              const method = isEditing ? 'PUT' : 'POST';
+              const response = await fetch(url, {
+                  method,
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(data)
+              });
+
+              const responseData = await response.json();
+              if (!response.ok) {
+                  throw new Error(responseData.detail || 'Failed to process request');
+              }
+
+              let msg = responseData.message;
+
+              if (responseData.generated_password) {
+                  msg += `👍`; 
+              }
+
+              showFeedback(msg, 'success');
+
+              staffForm.reset();
+              resetForm();
+              fetchStaffWithRetry();
+          } catch (error) {
+              console.error(`${isEditing ? 'Updating' : 'Creating'} staff failed:`, error.message);
+              showFeedback(error.message || `Failed to ${isEditing ? 'update' : 'create'} user.`, 'error');
+          } finally {
+              isSubmitting = false;
+              submitBtn.classList.remove('loading');
+              submitBtn.disabled = false;
+          }
+      });
+
+
+      // Chart.js for Staff Stats
+      let staffChart = null;
+      const ctx = document.getElementById('staffChart')?.getContext('2d');
+      if (ctx) {
+          staffChart = new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                  labels: ['Active', 'Inactive'],
+                  datasets: [{
+                      data: [0, 0],
+                      backgroundColor: ['#10b981', '#f59e0b'],
+                      borderWidth: 0,
+                      borderRadius: 5,
+                      hoverOffset: 15
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false, 
+                  plugins: {
+                      legend: {
+                          position: 'bottom',
+                          labels: {
+                              color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#4b5563',
+                              font: { size: 13, weight: 'bold' },
+                              padding: 20
+                          }
+                      },
+                      tooltip: {
+                          backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                          titleFont: { size: 14, weight: 'bold' },
+                          bodyFont: { size: 13 },
+                          padding: 12,
+                          borderWidth: 1,
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          displayColors: false,
+                          callbacks: {
+                              label: function(context) {
+                                  return context.label + ': ' + context.formattedValue + ' (' + Math.round(context.raw / context.dataset.data.reduce((a, b) => a + b, 0) * 100) + '%)';
+                              }
+                          }
+                      }
+                  },
+                  cutout: '65%',
+                  animation: {
+                      animateScale: true,
+                      animateRotate: true
+                  }
+              }
+          });
+      } else {
+          console.error('Chart canvas not found');
+      }
+      
+      // Role Distribution Chart
+      const roleCtx = document.getElementById('roleChart')?.getContext('2d');
+      if (roleCtx) {
+          roleChart = new Chart(roleCtx, {
+              type: 'bar',
+              data: {
+                  labels: [],
+                  datasets: [{
+                      label: 'Staff by Role',
+                      data: [],
+                      backgroundColor: [
+                          'rgba(16, 185, 129, 0.7)',
+                          'rgba(99, 102, 241, 0.7)',
+                          'rgba(245, 158, 11, 0.7)',
+                          'rgba(239, 68, 68, 0.7)',
+                          'rgba(8, 145, 178, 0.7)',
+                          'rgba(168, 85, 247, 0.7)'
+                      ],
+                      borderWidth: 0,
+                      borderRadius: 8,
+                      hoverOffset: 4
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: {
+                          display: false
+                      },
+                      tooltip: {
+                          backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                          titleFont: { size: 14, weight: 'bold' },
+                          bodyFont: { size: 13 },
+                          padding: 12,
+                          borderWidth: 1,
+                          borderColor: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  },
+                  scales: {
+                      x: {
+                          ticks: {
+                              color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563',
+                              font: { size: 12 }
+                          },
+                          grid: {
+                              display: false,
+                              drawBorder: false
+                          }
+                      },
+                      y: {
+                          beginAtZero: true,
+                          ticks: {
+                              color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563',
+                              font: { size: 12 },
+                              precision: 0,
+                              callback: function(value) {
+                                  if (value % 1 === 0) {
+                                      return value;
+                                  }
+                              }
+                          },
+                          grid: {
+                              color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                              drawBorder: false
+                          }
+                      }
+                  },
+                  animation: {
+                      duration: 1000,
+                      easing: 'easeOutQuart'
+                  }
+              }
+          });
+      }
+
+      function updateChart(users = []) {
+          if (!staffChart) return;
+          const active = users.filter(u => u.status === 'active').length;
+          const inactive = users.filter(u => u.status === 'inactive').length;
+          staffChart.data.datasets[0].data = [active, inactive];
+          staffChart.options.plugins.legend.labels.color = document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#4b5563';
+          staffChart.update();
+      }
+      
+      function updateRoleChart(users = []) {
+          if (!roleChart) return;
+          
+          // Count users by role
+          const roleCount = {};
+          users.forEach(user => {
+              const role = user.role || 'Unknown';
+              roleCount[role] = (roleCount[role] || 0) + 1;
+          });
+          
+          // Sort roles by count (descending)
+          const sortedRoles = Object.entries(roleCount)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 6); // Take top 6 roles
+          
+          const labels = sortedRoles.map(([role]) => 
+              role.charAt(0).toUpperCase() + role.slice(1)
+          );
+          const data = sortedRoles.map(([, count]) => count);
+          
+          roleChart.data.labels = labels;
+          roleChart.data.datasets[0].data = data;
+          
+          // Update scale colors for dark/light mode
+          roleChart.options.scales.x.ticks.color = document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563';
+          roleChart.options.scales.y.ticks.color = document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563';
+          roleChart.options.scales.y.grid.color = document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+          
+          roleChart.update();
+      }
+          
+      // Fetch user data
+      async function loadUserData() {
+          const username = localStorage.getItem('crm_username');
+          if (!username) {
+              window.location.href = '/';
+              return;
+          }
+      }
+
+      // Set current date
+      document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+      });
+
+      // Load data on page load
+      loadUserData();
+          
+      // Logout
+      logoutBtn.addEventListener('click', () => {
+          sessionStorage.removeItem('username');
+          window.location.href = '/';
+      });
+
+      // Initial Fetch
+      fetchStaffWithRetry();
+  </script>
+</body>
+</html>
