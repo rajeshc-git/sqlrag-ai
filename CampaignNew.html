@@ -1356,7 +1356,6 @@
             const decoder = new TextDecoder("utf-8");
             let buffer = '';
             let fullContent = '';
-            bubble.innerText = '';
 
             while (true) {
                 const { value, done } = await reader.read();
