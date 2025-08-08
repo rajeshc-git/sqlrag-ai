@@ -1,4 +1,4 @@
-# 🚀 Custom AI-LLM RAG, MCP & Fine-Tuning Projects
+# 🚀 Custom AI LLM RAG + MCP | Multi-Modal (Text + Vision) Intelligent Retrieval System
 
 Craft powerful, scalable AI applications using cutting-edge Large Language Models (LLMs) with custom-tailored pipelines designed for your domain.
 
